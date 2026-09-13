@@ -29,7 +29,7 @@
         <button id="nav-single" onclick="switchTab('single')"
           class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-semibold transition-all duration-200 bg-[#9D4EDD] text-white shadow-lg shadow-[#9D4EDD]/20">
           <i class="fa-solid fa-music text-base"></i>
-          <span id="nav-single-label">Single Downloader</span>
+          <span id="nav-single-label">URL Yükləyici</span>
         </button>
         <button id="nav-playlist" onclick="switchTab('playlist')"
           class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-semibold text-[#A0A0A0] hover:text-white hover:bg-[#282828] transition-all duration-200">
@@ -75,28 +75,79 @@
     </header>
 
     <!-- Content Workspace -->
-    <div class="flex-1 p-6 overflow-y-auto">
+    <div class="flex-1 p-6 overflow-hidden flex flex-col min-h-0">
 
       <!-- ── TAB: Single Downloader ── -->
-      <div id="tab-single-content" class="tab-content active space-y-6">
+      <div id="tab-single-content" class="tab-content active space-y-6 overflow-y-auto">
         <!-- Form Container -->
         <div class="bg-[#181818] rounded-2xl border border-[#242424] p-6 space-y-5">
-          <!-- URL entry row -->
-          <div class="space-y-2">
-            <label id="lbl-url" class="text-xs font-bold text-[#9D4EDD] tracking-wide uppercase">Paste the link below:</label>
+          <!-- URL entry row with search dropdown -->
+          <!-- URL & Search Entry Row with Spotify-style dropdown -->
+          <div class="space-y-2 relative" id="url-entry-container">
+            <div class="flex items-center justify-between">
+              <label id="lbl-url" class="text-xs font-bold text-[#9D4EDD] tracking-wide uppercase">Link yapışdırın və ya mahnı axtarın:</label>
+              
+              <!-- Search Platform Switcher (YouTube & Spotify ONLY) -->
+              <div class="flex items-center gap-1.5 bg-[#202020] p-1 rounded-xl border border-[#2c2c2c]">
+                <button type="button" id="btn-tab-youtube" onclick="setSearchPlatform('youtube')"
+                  class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#FF0000] bg-[#FF0000]/15 border border-[#FF0000]/40 transition-all cursor-pointer">
+                  <i class="fa-brands fa-youtube text-sm"></i>
+                  <span>YouTube</span>
+                </button>
+                <button type="button" id="btn-tab-spotify" onclick="setSearchPlatform('spotify')"
+                  class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#A0A0A0] hover:text-[#1DB954] hover:bg-[#1DB954]/10 border border-transparent transition-all cursor-pointer">
+                  <i class="fa-brands fa-spotify text-sm"></i>
+                  <span>Spotify</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Input Bar -->
             <div
-              class="flex items-center bg-[#242424] rounded-xl border border-[#282828] p-1.5 focus-within:border-[#9D4EDD] transition-all">
-              <span class="text-[#A0A0A0] px-3"><i class="fa-solid fa-link text-sm"></i></span>
-              <input type="text" id="url-input" placeholder="Paste Spotify or YouTube link here..."
-                class="bg-transparent border-0 outline-0 flex-1 text-sm text-white placeholder-[#6B7280] mr-3">
+              class="flex items-center bg-[#242424] rounded-xl border border-[#282828] p-1.5 focus-within:border-[#9D4EDD] transition-all relative">
+              <span id="input-platform-icon" class="text-[#FF0000] px-3 transition-colors">
+                <i class="fa-brands fa-youtube text-base"></i>
+              </span>
+              <input type="text" id="url-input" placeholder="YouTube və ya Spotify linki yapışdırın..."
+                autocomplete="off"
+                oninput="handleUrlInputChange(this.value)"
+                onfocus="handleUrlInputFocus(this.value)"
+                class="bg-transparent border-none outline-none focus:outline-none focus:ring-0 shadow-none flex-1 text-sm text-white placeholder-[#6B7280] mr-3">
+
+              <div id="search-spinner" class="hidden mr-2 text-[#9D4EDD] animate-spin">
+                <i class="fa-solid fa-circle-notch text-sm"></i>
+              </div>
 
               <button onclick="pasteFromClipboard()"
-                class="px-4 py-2 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all mr-1.5 shrink-0">
+                class="px-4 py-2 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all mr-1.5 shrink-0 cursor-pointer">
                 <span id="btn-paste">Yapışdır</span>
               </button>
-              <button onclick="clearUrlInput()" class="px-3 py-2 text-[#A0A0A0] hover:text-white transition-all">
+              <button onclick="clearUrlInput()" class="px-3 py-2 text-[#A0A0A0] hover:text-white transition-all cursor-pointer">
                 <i class="fa-solid fa-xmark text-sm"></i>
               </button>
+            </div>
+
+            <!-- ── Spotify-Style Search Dropdown Panel ── -->
+            <div id="search-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 z-50 bg-[#181818]/95 backdrop-blur-md rounded-2xl border border-[#2e2e2e] shadow-2xl p-3 space-y-2.5 max-h-[380px] overflow-hidden flex flex-col">
+              <div class="flex items-center justify-between pb-2 border-b border-[#282828] text-xs font-bold shrink-0">
+                <div class="flex items-center gap-2">
+                  <span id="search-dropdown-title" class="text-white">Axtarış Nəticələri</span>
+                  <span id="search-dropdown-count" class="text-[11px] text-[#A0A0A0] font-normal bg-[#222222] px-2 py-0.5 rounded-md">0 mahnı</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span id="search-selected-indicator" class="text-[#1DB954] text-xs font-semibold hidden">
+                    <i class="fa-solid fa-check"></i> <span id="search-selected-num">0</span> seçildi
+                  </span>
+                  <button type="button" onclick="closeSearchDropdown()" class="text-[#A0A0A0] hover:text-white text-sm cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Scrollable Tracklist -->
+              <div id="search-dropdown-list" class="space-y-1.5 overflow-y-auto pr-1 flex-1 max-h-[300px]">
+                <!-- Populated dynamically with Spotify-style rows -->
+              </div>
             </div>
           </div>
 
@@ -179,70 +230,117 @@
       </div>
 
       <!-- ── TAB: Playlist Downloader ── -->
-      <div id="tab-playlist-content" class="tab-content gap-4">
+      <div id="tab-playlist-content" class="tab-content gap-4 h-full flex-1 min-h-0">
         <!-- Input panel -->
         <div class="bg-[#181818] rounded-2xl border border-[#242424] p-4 shrink-0">
-          <div class="flex gap-3">
+          <div class="flex gap-2.5 items-center">
             <input type="text" id="playlist-url-input" placeholder="Paste Spotify or YouTube Playlist link here..."
-              class="bg-[#242424] text-white text-sm placeholder-[#6B7280] border border-[#282828] rounded-xl px-4 py-3 flex-1 outline-none focus:border-[#9D4EDD] transition-all">
+              class="bg-[#242424] text-white text-sm placeholder-[#6B7280] border border-[#282828] rounded-xl px-4 py-3 flex-1 outline-none focus:outline-none focus:ring-0 focus:border-[#9D4EDD] transition-all">
             <button onclick="pastePlaylistUrl()"
-              class="px-5 py-3 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all">
+              class="px-4 py-3 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shrink-0">
               <span id="btn-playlist-paste">Yapışdır</span>
             </button>
             <button id="btn-fetch-playlist" onclick="fetchPlaylist()"
-              class="px-6 py-3 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-extrabold rounded-xl transition-all">
+              class="px-6 py-3 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-extrabold rounded-xl transition-all shrink-0">
               <span id="lbl-fetch-btn">Pleylisti Yüklə</span>
             </button>
           </div>
         </div>
 
+        <!-- Spotify 100+ Limit Info & Part Selector Banner -->
+        <div id="spotify-limit-banner" class="hidden bg-[#181818] rounded-2xl border border-[#1DB954]/30 p-4 shrink-0 transition-all shadow-lg">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-xl bg-[#1DB954]/15 text-[#1DB954] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-brands fa-spotify text-base"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-black text-white flex items-center gap-2">
+                  <span id="spotify-limit-title">Spotify Pleylist Hissələri (100 Mahnı Limiti)</span>
+                  <span id="spotify-total-badge" class="px-2 py-0.5 rounded-full bg-[#1DB954]/20 text-[#1DB954] text-[10px] font-extrabold border border-[#1DB954]/30"></span>
+                </h4>
+                <p id="spotify-limit-desc" class="text-[11px] text-[#A0A0A0] mt-0.5 leading-relaxed">
+                  Spotify tətbiqlərə bir dəfədə maksimum 100 mahnı çəkməyə icazə verir. Bir neçə parta bölünmüş hissələrdən yükləyə bilərsiniz.
+                </p>
+              </div>
+            </div>
+            <!-- Part selection pills container -->
+            <div id="playlist-part-container" class="flex items-center gap-2 flex-wrap shrink-0"></div>
+          </div>
+        </div>
+
         <!-- Playlist Tracks list card -->
         <div id="playlist-results"
-          class="hidden bg-[#181818] rounded-2xl border border-[#242424] p-4 flex flex-col flex-1 min-h-0 relative">
-          <!-- Sticky Header row -->
-          <div class="sticky top-0 z-20 bg-[#181818]/95 backdrop-blur-md pb-3 border-b border-[#242424] flex items-center justify-between gap-3 flex-wrap">
-            <div class="flex items-center gap-3">
-              <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-white">
-                <input type="checkbox" id="master-cb" checked onchange="toggleSelectAllTracks(this)"
-                  class="accent-[#9D4EDD] h-4 w-4">
-                <span id="lbl-select-all">Hamısını Seç</span>
-              </label>
-              <span id="playlist-status-msg" class="text-xs text-[#A0A0A0] font-medium"></span>
-            </div>
-
-            <!-- Search -->
-            <div
-              class="flex items-center bg-[#242424] rounded-lg border border-[#333] px-3 h-8 gap-2 flex-1 max-w-[220px]">
-              <i class="fa-solid fa-magnifying-glass text-[#A0A0A0] text-xs"></i>
-              <input type="text" id="playlist-search" oninput="filterTracks()" placeholder="Axtar..."
-                class="bg-transparent text-xs text-white outline-none flex-1 placeholder-[#6B7280]">
-            </div>
-
-            <!-- Format + Quality -->
-            <div class="flex items-center gap-3 flex-wrap">
-              <div class="flex gap-1.5">
-                <button onclick="setPlaylistFormat('audio')" id="pf-audio"
-                  class="px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#9D4EDD] text-white border border-[#9D4EDD] transition-all">MP3</button>
-                <button onclick="setPlaylistFormat('video')" id="pf-video"
-                  class="px-3 py-1.5 rounded-full text-[11px] font-bold text-[#A0A0A0] border border-[#3A3A3A] hover:border-[#9D4EDD] hover:text-white transition-all">MP4</button>
+          class="hidden bg-[#181818] rounded-2xl border border-[#242424] p-4 flex flex-col flex-1 min-h-0 relative overflow-hidden">
+          <!-- Fixed Toolbar Header row -->
+          <div class="bg-[#181818] pb-3 border-b border-[#242424] flex flex-col gap-3 shrink-0">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <div class="flex items-center gap-3">
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-white hover:text-[#9D4EDD] transition-colors">
+                  <input type="checkbox" id="master-cb" onchange="toggleSelectAllTracks(this)"
+                    class="accent-[#9D4EDD] h-4 w-4 cursor-pointer">
+                  <span id="lbl-select-all">Hamısını Seç</span>
+                </label>
+                <span id="playlist-status-msg" class="text-xs text-[#A0A0A0] font-medium"></span>
               </div>
-              <div id="playlist-quality-pills" class="flex gap-1.5 flex-wrap"></div>
+
+              <!-- Format + Quality -->
+              <div class="flex items-center gap-3 flex-wrap">
+                <div class="flex gap-1.5">
+                  <button onclick="setPlaylistFormat('audio')" id="pf-audio"
+                    class="px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#9D4EDD] text-white border border-[#9D4EDD] transition-all">MP3</button>
+                  <button onclick="setPlaylistFormat('video')" id="pf-video"
+                    class="px-3 py-1.5 rounded-full text-[11px] font-bold text-[#A0A0A0] border border-[#3A3A3A] hover:border-[#9D4EDD] hover:text-white transition-all">MP4</button>
+                </div>
+                <div id="playlist-quality-pills" class="flex gap-1.5 flex-wrap"></div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button id="btn-cancel-playlist" onclick="cancelPlaylistDownload()"
+                  class="hidden px-4 py-2 bg-[#7F1D1D] hover:bg-[#991B1B] text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0">
+                  <i class="fa-solid fa-xmark mr-1"></i> <span id="lbl-cancel-playlist">Ləğv Et</span>
+                </button>
+                <button id="btn-download-playlist" onclick="downloadSelectedTracks()"
+                  class="px-5 py-2 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-extrabold rounded-xl transition-all shadow-md shrink-0">
+                  <span id="lbl-download-selected">Seçilənləri Yüklə</span>
+                </button>
+              </div>
             </div>
 
-            <div class="flex items-center gap-2">
-              <button id="btn-cancel-playlist" onclick="cancelPlaylistDownload()"
-                class="hidden px-4 py-2 bg-[#7F1D1D] hover:bg-[#991B1B] text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0">
-                <i class="fa-solid fa-xmark mr-1"></i> <span id="lbl-cancel-playlist">Ləğv Et</span>
-              </button>
-              <button id="btn-download-playlist" onclick="downloadSelectedTracks()"
-                class="px-5 py-2 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-extrabold rounded-xl transition-all shadow-md shrink-0">
-                <span id="lbl-download-selected">Seçilənləri Yüklə</span>
-              </button>
+            <!-- Search bar & Status filter pills toolbar -->
+            <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
+              <!-- Search Bar -->
+              <div class="flex items-center bg-[#242424] rounded-xl border border-[#2e2e2e] focus-within:border-[#9D4EDD] focus-within:ring-1 focus-within:ring-[#9D4EDD]/40 px-3.5 h-9 gap-2.5 flex-1 min-w-[200px] max-w-[340px] shadow-sm transition-all">
+                <i class="fa-solid fa-magnifying-glass text-[#A0A0A0] text-xs shrink-0"></i>
+                <input type="text" id="playlist-search" oninput="filterTracks()" placeholder="Mahnı və ya sənətçi axtar..."
+                  class="bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-xs text-white flex-1 placeholder-[#6B7280]">
+                <button onclick="clearPlaylistSearch()" id="btn-clear-pl-search" class="hidden text-[#6B7280] hover:text-white text-xs transition-colors">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <!-- Status Filter Buttons (Hamısı, Yüklənənlər, Yüklənməyənlər) -->
+              <div class="flex items-center gap-1.5 bg-[#242424] p-1 rounded-xl border border-[#2e2e2e]">
+                <button onclick="setTrackStatusFilter('all')" id="filter-all"
+                  class="px-3 py-1 text-[11px] font-bold rounded-lg bg-[#9D4EDD] text-white transition-all">
+                  <span id="lbl-filter-all">Hamısı</span>
+                </button>
+                <button onclick="setTrackStatusFilter('downloaded')" id="filter-downloaded"
+                  class="px-3 py-1 text-[11px] font-bold rounded-lg text-[#A0A0A0] hover:text-white transition-all flex items-center gap-1.5">
+                  <i class="fa-solid fa-circle-check text-[#10B981] text-[10px]"></i>
+                  <span id="lbl-filter-downloaded">Yüklənənlər</span>
+                </button>
+                <button onclick="setTrackStatusFilter('pending')" id="filter-pending"
+                  class="px-3 py-1 text-[11px] font-bold rounded-lg text-[#A0A0A0] hover:text-white transition-all flex items-center gap-1.5">
+                  <i class="fa-solid fa-clock text-[#A0A0A0] text-[10px]"></i>
+                  <span id="lbl-filter-pending">Yüklənməyənlər</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- Live Playlist Download Progress Panel -->
-          <div id="playlist-progress-panel" class="hidden bg-[#242424] rounded-xl border border-[#2a2a2a] p-3.5 mt-3 space-y-2.5">
+          <div id="playlist-progress-panel" class="hidden bg-[#242424] rounded-xl border border-[#2a2a2a] p-3.5 mt-3 space-y-2.5 shrink-0">
             <div class="flex items-center justify-between text-xs font-bold text-white">
               <div class="flex items-center gap-2 truncate">
                 <i class="fa-solid fa-spinner fa-spin text-[#9D4EDD]"></i>
@@ -261,7 +359,7 @@
           </div>
 
           <!-- Scrollable Tracklist -->
-          <div id="tracklist-container" class="flex-1 overflow-y-auto space-y-2 pr-1 mt-3">
+          <div id="tracklist-container" class="flex-1 overflow-y-auto space-y-2 pr-1 mt-3 min-h-0">
             <!-- Track rows populated dynamically -->
           </div>
         </div>
@@ -273,7 +371,7 @@
     <footer
       class="h-8 flex items-center justify-between px-6 border-t border-[#242424] bg-[#121212] text-[10px] text-[#A0A0A0] shrink-0">
       <div></div>
-      <div id="footer-version">Versiya: v1.0.4</div>
+      <div id="footer-version">Versiya: v1.0.5</div>
     </footer>
   </div>
 
@@ -325,50 +423,58 @@
   <!-- ── MODAL: Spotify Credentials Setup ── -->
   <div id="spotify-modal"
     class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-    <div class="bg-[#181818] border border-[#242424] rounded-2xl w-[400px] p-6 space-y-5 shadow-2xl relative">
+    <div class="bg-[#181818] border border-[#242424] rounded-2xl w-[420px] p-6 space-y-5 shadow-2xl relative">
       <button onclick="closeSpotifyModal()"
         class="absolute top-4 right-4 text-[#A0A0A0] hover:text-white transition-all">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
 
-      <div class="text-center">
-        <h3 id="spotify-modal-title" class="text-lg font-extrabold text-[#9D4EDD]">Spotify API Tənzimləmələri</h3>
-        <p id="spotify-modal-desc" class="text-xs text-[#A0A0A0] mt-2">Spotify pleylistlərini yükləmək üçün şəxsi
-          Spotify Developer tətbiqi açarlarınızı daxil etməlisiniz. Bu tamamilə pulsuzdur.</p>
+      <div class="text-center space-y-1.5">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#1DB954]/10 text-[#1DB954] mb-1">
+          <i class="fa-brands fa-spotify text-2xl"></i>
+        </div>
+        <h3 id="spotify-modal-title" class="text-lg font-black text-white">Spotify API Açarı Tələb Olunur</h3>
+        <p id="spotify-modal-desc" class="text-xs text-[#A0A0A0] leading-relaxed">
+          Spotify rəsmi olaraq 100-dən çox mahnı olan pleylistlərin bütün mahnılarını çəkmək üçün API açarı tələb edir. 100+ mahnını limitsiz yükləmək üçün açarınızı bura daxil edin.
+        </p>
       </div>
 
-      <div class="space-y-4">
-        <!-- Client ID input -->
-        <div class="space-y-1">
-          <label class="text-[10px] font-bold text-[#A0A0A0] uppercase tracking-wider">Client ID:</label>
-          <input type="text" id="spotify-client-id" placeholder="Paste Client ID..."
-            class="w-full bg-[#242424] text-white border border-[#282828] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#9D4EDD] transition-all">
+      <!-- Spotify API / Client Credentials Inputs -->
+      <div class="space-y-3 pt-1">
+        <div>
+          <label class="block text-[11px] font-bold text-[#A0A0A0] mb-1">Spotify Client ID / Token</label>
+          <div class="flex gap-2">
+            <input type="text" id="spotify-api-key" placeholder="Client ID və ya API Token daxil edin..."
+              class="w-full bg-[#242424] text-white text-xs placeholder-[#6B7280] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 outline-none focus:border-[#1DB954] transition-all">
+            <button onclick="pasteSpotifyKey()" class="px-3 bg-[#242424] hover:bg-[#2e2e2e] text-[#1DB954] text-xs font-bold rounded-xl border border-[#2e2e2e] transition-all shrink-0">
+              <i class="fa-solid fa-paste"></i>
+            </button>
+          </div>
         </div>
-        <!-- Client Secret input -->
-        <div class="space-y-1">
-          <label class="text-[10px] font-bold text-[#A0A0A0] uppercase tracking-wider">Client Secret:</label>
-          <input type="password" id="spotify-client-secret" placeholder="Paste Client Secret..."
-            class="w-full bg-[#242424] text-white border border-[#282828] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#9D4EDD] transition-all">
-        </div>
-      </div>
 
-      <div class="bg-[#242424] rounded-xl p-3 text-[10px] text-[#A0A0A0] leading-relaxed border border-[#282828]">
-        <h4 id="spotify-inst-title" class="font-bold text-white mb-1">Açarları necə almaq olar?</h4>
-        <ol id="spotify-inst-list" class="list-decimal pl-4 space-y-1">
-          <li>developer.spotify.com saytına daxil olun.</li>
-          <li>Yeni tətbiq yaradın (Create an App).</li>
-          <li>Client ID və Secret kodlarını bura daxil edin.</li>
-        </ol>
+        <div>
+          <label class="block text-[11px] font-bold text-[#A0A0A0] mb-1">Client Secret (İstəyə bağlı)</label>
+          <input type="password" id="spotify-client-secret" placeholder="Client Secret (varsa)..."
+            class="w-full bg-[#242424] text-white text-xs placeholder-[#6B7280] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 outline-none focus:border-[#1DB954] transition-all">
+        </div>
+
+        <div class="bg-[#242424] rounded-xl p-3 text-xs text-[#A0A0A0] leading-relaxed border border-[#2e2e2e]">
+          <p class="text-white font-bold mb-1"><i class="fa-solid fa-circle-info text-[#1DB954] mr-1.5"></i> Məlumat</p>
+          <p class="text-[11px]">Spotify Developer portalından (developer.spotify.com) pulsuz tətbiq yaradıb Client ID & Secret daxil edərək 100+ mahnılı pleylistləri tam yükləyə bilərsiniz.</p>
+        </div>
       </div>
 
       <!-- Action buttons -->
-      <div class="flex gap-3">
-        <button onclick="closeSpotifyModal()" id="btn-spotify-cancel"
-          class="flex-1 py-2.5 bg-[#242424] hover:bg-[#282828] text-white text-xs font-bold rounded-xl transition-all border border-[#282828]">Ləğv
-          Et</button>
-        <button onclick="saveSpotifyConfig()" id="btn-spotify-save"
-          class="flex-1 py-2.5 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-extrabold rounded-xl transition-all shadow-md">Yadda
-          Saxla</button>
+      <div class="flex gap-2.5 pt-1">
+        <button onclick="openSpotifyDeveloperSite()"
+          class="flex-1 py-2.5 bg-[#242424] hover:bg-[#2e2e2e] text-white text-xs font-bold rounded-xl transition-all border border-[#2e2e2e] flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-[#1DB954]"></i>
+          <span>Developer Saytı</span>
+        </button>
+        <button onclick="saveSpotifyConfig()"
+          class="flex-1 py-2.5 bg-[#1DB954] hover:bg-[#1AA34A] text-black text-xs font-extrabold rounded-xl transition-all shadow-md shadow-[#1DB954]/20">
+          <span>Yadda Saxla</span>
+        </button>
       </div>
     </div>
   </div>
@@ -429,6 +535,16 @@
     <div class="flex gap-2 text-[10px] font-bold">
       <button id="btn-update-close" onclick="closeUpdateToast()" class="flex-1 py-2 bg-[#242424] hover:bg-[#282828] text-[#A0A0A0] hover:text-white rounded-lg transition-all border border-[#282828]">Bağla</button>
       <button id="btn-update-download" onclick="downloadUpdate()" class="flex-1 py-2 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white rounded-lg transition-all shadow-md shadow-[#9D4EDD]/10">İndi Yüklə</button>
+    </div>
+  </div>
+
+  <!-- ── TOAST: General In-App Notification Toast ── -->
+  <div id="app-toast" class="fixed top-6 right-6 z-50 bg-[#181818]/95 backdrop-blur-md border border-[#2e2e2e] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none">
+    <div id="app-toast-icon" class="w-8 h-8 rounded-lg bg-[#10B981]/20 flex items-center justify-center text-[#10B981] text-sm shrink-0">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <div class="text-xs text-white font-medium" id="app-toast-text">
+      Bildiriş
     </div>
   </div>
 
