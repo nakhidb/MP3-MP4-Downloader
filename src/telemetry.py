@@ -12,8 +12,9 @@ from typing import Optional, Dict, Any
 # Sentry.io DSN açarınızı bura yapışdıra bilərsiniz və ya Windows Environment
 # dəyişəni kimi 'SENTRY_DSN' təyin edə bilərsiniz.
 # DSN açıq mənbədə (open-source) gizli açar deyil, client-side qorunmalıdır.
-DEFAULT_SENTRY_DSN = "https://examplePublicKey@o0.ingest.sentry.io/0"
+DEFAULT_SENTRY_DSN = "https://57392982513484cd21e7f0badfd55acb@o4512307230474240.ingest.us.sentry.io/4512307274317824"
 SENTRY_DSN = os.environ.get("SENTRY_DSN", DEFAULT_SENTRY_DSN)
+
 
 _telemetry_initialized = False
 _device_info: Dict[str, str] = {}
