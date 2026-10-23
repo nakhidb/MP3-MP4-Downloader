@@ -305,9 +305,14 @@ class Bridge:
                         current_exe = possible_exe
 
                 updater_bat = os.path.join(temp_dir, "trackdrop_updater.bat")
-                current_pid = os.getpid()
+                clean_env = os.environ.copy()
+                clean_env.pop("_MEIPASS2", None)
+                clean_env.pop("_MEIPASS", None)
+                exe_dir = os.path.dirname(os.path.abspath(current_exe))
 
                 bat_content = f"""@echo off
+set _MEIPASS2=
+set _MEIPASS=
 timeout /t 1 /nobreak >nul
 taskkill /f /pid {current_pid} >nul 2>&1
 timeout /t 1 /nobreak >nul
@@ -318,6 +323,8 @@ if exist "{current_exe}" (
     goto wait_loop
 )
 move /y "{new_exe_path}" "{current_exe}" >nul 2>&1
+timeout /t 1 /nobreak >nul
+cd /d "{exe_dir}"
 start "" "{current_exe}"
 del "%~f0" >nul 2>&1
 exit
@@ -325,9 +332,11 @@ exit
                 with open(updater_bat, "w", encoding="utf-8") as bf:
                     bf.write(bat_content)
 
-                # Launch updater batch detached
+                # Launch updater batch detached with clean environment
                 subprocess.Popen(
                     ["cmd.exe", "/c", updater_bat],
+                    env=clean_env,
+                    cwd=exe_dir,
                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
                 )
 
