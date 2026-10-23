@@ -11,9 +11,7 @@ __pycache__/
 *.pyo
 *.pyd
 
-# PyInstaller Build Artifacts & Executables
-TrackDrop.exe
-*.exe
+# PyInstaller intermediate build folders
 src/build/
 build/
 dist/

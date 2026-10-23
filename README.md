@@ -1,43 +1,63 @@
 # TrackDrop 🎵
 
-Müasir, sürətli və minimalist masaüstü audio/video yükləyici (YouTube & Spotify dəstəyi ilə).
+> A sleek, high-speed, and modern desktop audio & video downloader for Windows.
 
-## 🚀 Xüsusiyyətlər
-- **Audio & Video Yükləmə:** YouTube linklərindən yüksək keyfiyyətli MP3 (320kbps) və MP4 (1080p, 2K, 4K).
-- **Spotify Dəstəyi:** Tək mahnı və ya pleylist linkləri ilə avtomatik sinxronizasiya.
-- **Toplu Yükləmə (Batch Download):** Bütün pleylisti bir kliklə yükləmə imkanı.
-- **Daxili Telemetriya:** Sentry dəstəyi ilə səhvlərin və cihazların anonim izlənməsi.
+TrackDrop makes it effortless to download single tracks, albums, and playlists from YouTube and Spotify in ultra-high quality.
 
 ---
 
-## 💻 Quraşdırma və İşə Salma
+## ✨ Features
 
-### 1. Tələblər
-- Python 3.10 və ya daha yuxarı versiya
+- ⚡ **High-Speed Downloads:** Ultra-fast audio & video extraction.
+- 🎧 **Studio Quality Audio:** Crystal-clear MP3 conversion up to 320 kbps.
+- 🎬 **Crisp Video Formats:** Full HD, 2K, and 4K MP4 video downloads.
+- 🟢 **Spotify Integration:** Download single tracks or full playlists automatically.
+- 📦 **Batch Downloader:** Queue multiple tracks with live per-track progress bars.
+- 🎨 **Modern Minimalist UI:** Native desktop experience with dark mode and smooth animations.
+- 🛠️ **Built-in FFmpeg Manager:** Automatically detects or installs required conversion tools with one click.
+
+---
+
+## 🚀 How to Run
+
+### Option 1: Direct Download (Easiest)
+1. Go to the **[Releases](../../releases)** tab on GitHub.
+2. Download the latest **`TrackDrop.exe`**.
+3. Double-click to run!
+
+> **Security Note:** If Windows SmartScreen shows a warning on first launch, click **"More info"** and then **"Run anyway"**. TrackDrop is fully open-source and safe.
+
+---
+
+### Option 2: Run from Source
+
+#### Prerequisites
 - Windows 10/11
+- Python 3.10+
 
-### 2. Kitabxanaların yüklənməsi
 ```bash
+# Clone the repository
+git clone https://github.com/nakhidb/MP3-MP4-Downloader.git
+cd MP3-MP4-Downloader
+
+# Set up virtual environment
 python -m venv .venv
 .venv\Scripts\activate
-pip install -r requirements.txt
-```
 
-### 3. Tətbiqi işə salmaq
-```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
 python src/main.py
 ```
 
-### 4. Yeni EXE faylı yığmaq (Build)
+### Build Single-File Executable
+To package the app into a standalone `TrackDrop.exe`:
 ```bash
 python src/build_exe.py
 ```
-Yığılmış `TrackDrop.exe` faylı avtomatik layihənin əsas qovluğuna yerləşdiriləcək.
 
 ---
 
-## 📊 Telemetriya və Xəta İzləmə (Sentry)
-Tətbiqdə yaranan xətaları, hansı sətirdə baş verdiyini və hansı cihazda yarandığını görmək üçün:
-1. [sentry.io](https://sentry.io) saytında pulsuz hesab açın.
-2. Yeni **Python** layihəsi yaradıb `DSN` linkini kopyalayın.
-3. `src/telemetry.py` faylında `DEFAULT_SENTRY_DSN` dəyişəninə öz DSN açarınızı yapışdırın (və ya `SENTRY_DSN` sistem dəyişəni təyin edin).
+## 📄 License
+This project is open-source under the [MIT License](LICENSE).
