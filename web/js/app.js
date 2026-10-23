@@ -7,18 +7,28 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+window.onerror = function(message, source, lineno, colno, error) {
+  try {
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.report_client_error) {
+      window.pywebview.api.report_client_error(String(message), String(source || ""), lineno || 0, colno || 0);
+    }
+  } catch (e) {}
+  return false;
+};
+
+
 // Translations Dictionary
 const translations = {
   "AZ": {
-    "subtitle": "MÜASİR SƏS VƏ VİDEO YÜKLƏYİCİ",
+    "subtitle": "Müasir səs və video yükləyici",
     "lbl_url": "Linki aşağıya yapışdırın:",
     "btn_paste": "Yapışdır",
     "btn_playlist_paste": "Yapışdır",
     "lbl_media": "Media Tipi:",
     "lbl_format": "Format:",
     "lbl_quality": "Keyfiyyət:",
-    "lbl_download_btn": "YÜKLƏ",
-    "btn_cancel": "LƏĞV ET",
+    "lbl_download_btn": "Yüklə",
+    "btn_cancel": "Ləğv et",
     "btn_cancel_playlist": "Ləğv Et",
     "lbl_fetch_btn": "Pleylisti Yüklə",
     "lbl_select_all": "Hamısını Seç",
@@ -87,18 +97,29 @@ const translations = {
     "btn_clear_basket": "Təmizlə",
     "btn_download_all": "Hamısını Yüklə",
     "basket_empty_desc": "Hələ heç bir mahnı seçilməyib. Nəticələrdən [+] ilə əlavə edin.",
-    "songs_unit": "mahnı"
+    "songs_unit": "mahnı",
+    "badge_downloaded": "Yüklənib",
+    "pager_prev": "Əvvəlki",
+    "pager_next": "Növbəti",
+    "pager_info": "Səhifə {page} / {totalPages} · {start}–{end} / {total} mahnı",
+    "all_completed": "Hamısı tamamlandı! ({count})",
+    "wait_loading_part": "Zəhmət olmasa gözləyin, hazırda {part} yüklənir...",
+    "wait_preparing_playlist": "Zəhmət olmasa gözləyin, pleylist məlumatları alınır və hissələrə bölünür...",
+    "loading_part_notice": "Part {part} yüklənir, zəhmət olmasa gözləyin...",
+    "btn_download_folder_title": "Yükləmə qovluğunu dəyiş",
+    "folder_changed_toast": "Yükləmə qovluğu yeniləndi: ",
+    "folder_default_lbl": "Yükləmə qovluğu"
   },
   "EN": {
-    "subtitle": "MODERN AUDIO AND VIDEO DOWNLOADER",
+    "subtitle": "Modern Audio and Video Downloader",
     "lbl_url": "Paste the link below:",
     "btn_paste": "Paste",
     "btn_playlist_paste": "Paste",
     "lbl_media": "Media Type:",
     "lbl_format": "Format:",
     "lbl_quality": "Quality:",
-    "lbl_download_btn": "DOWNLOAD",
-    "btn_cancel": "CANCEL",
+    "lbl_download_btn": "Download",
+    "btn_cancel": "Cancel",
     "btn_cancel_playlist": "Cancel",
     "lbl_fetch_btn": "Fetch Playlist",
     "lbl_select_all": "Select All",
@@ -167,18 +188,29 @@ const translations = {
     "btn_clear_basket": "Clear",
     "btn_download_all": "Download All",
     "basket_empty_desc": "No tracks selected yet. Click [+] to add.",
-    "songs_unit": "tracks"
+    "songs_unit": "tracks",
+    "badge_downloaded": "Downloaded",
+    "pager_prev": "Previous",
+    "pager_next": "Next",
+    "pager_info": "Page {page} / {totalPages} · {start}–{end} / {total} tracks",
+    "all_completed": "All completed! ({count})",
+    "wait_loading_part": "Please wait, loading {part} in progress...",
+    "wait_preparing_playlist": "Please wait, playlist info is being processed...",
+    "loading_part_notice": "Loading Part {part}, please wait...",
+    "btn_download_folder_title": "Change download folder",
+    "folder_changed_toast": "Download folder updated: ",
+    "folder_default_lbl": "Download Folder"
   },
   "РУС": {
-    "subtitle": "СОВРЕМЕННЫЙ ЗАГРУЗЧИК АУДИО И ВИДЕО",
+    "subtitle": "Современный загрузчик аудио и видео",
     "lbl_url": "Вставьте ссылку ниже:",
     "btn_paste": "Вставить",
     "btn_playlist_paste": "Вставить",
     "lbl_media": "Тип медиа:",
     "lbl_format": "Формат:",
     "lbl_quality": "Качество:",
-    "lbl_download_btn": "СКАЧАТЬ",
-    "btn_cancel": "ОТМЕНИТЬ",
+    "lbl_download_btn": "Скачать",
+    "btn_cancel": "Отменить",
     "btn_cancel_playlist": "Отмена",
     "lbl_fetch_btn": "Загрузить плейлист",
     "lbl_select_all": "Выбрать все",
@@ -247,7 +279,18 @@ const translations = {
     "btn_clear_basket": "Очистить",
     "btn_download_all": "Скачать все",
     "basket_empty_desc": "Пока ничего не выбрано. Нажмите [+] в результатах.",
-    "songs_unit": "треков"
+    "songs_unit": "треков",
+    "badge_downloaded": "Скачано",
+    "pager_prev": "Назад",
+    "pager_next": "Вперед",
+    "pager_info": "Страница {page} / {totalPages} · {start}–{end} / {total} треков",
+    "all_completed": "Все завершено! ({count})",
+    "wait_loading_part": "Пожалуйста, подождите, идет загрузка {part}...",
+    "wait_preparing_playlist": "Пожалуйста, подождите, информация о плейлисте обрабатывается...",
+    "loading_part_notice": "Загружается Part {part}, пожалуйста, подождите...",
+    "btn_download_folder_title": "Изменить папку сохранения",
+    "folder_changed_toast": "Папка сохранения обновлена: ",
+    "folder_default_lbl": "Папка загрузки"
   }
 };
 
@@ -256,6 +299,7 @@ let activeTab = "single";
 let mediaType = "audio";
 let isDownloading = false;
 let fetchedTracks = [];
+let currentPlaylistName = "";
 
 const mediaConfig = {
   audio: {
@@ -276,6 +320,57 @@ const playlistQualityConfig = {
 let playlistMediaType = "audio";
 let playlistQuality = "320 kbps";
 
+let currentDownloadFolder = "";
+
+function updateFolderButtonDisplay() {
+  const lbl = document.getElementById("lbl-download-folder");
+  const btn = document.getElementById("btn-download-folder");
+  if (!lbl) return;
+
+  const t = translations[currentLanguage] || translations["AZ"];
+  if (currentDownloadFolder) {
+    const parts = currentDownloadFolder.replace(/\\/g, '/').split('/').filter(Boolean);
+    const folderName = parts.length > 0 ? parts[parts.length - 1] : currentDownloadFolder;
+    lbl.textContent = folderName;
+    if (btn) {
+      btn.title = `${t.btn_download_folder_title || "Yükləmə qovluğunu dəyiş"}\n${currentDownloadFolder}`;
+    }
+  } else {
+    lbl.textContent = t.folder_default_lbl || "Yükləmə qovluğu";
+    if (btn) {
+      btn.title = t.btn_download_folder_title || "Yükləmə qovluğunu dəyiş";
+    }
+  }
+}
+
+function loadDownloadFolder() {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.get_download_dir) {
+    window.pywebview.api.get_download_dir().then(dir => {
+      if (dir) {
+        currentDownloadFolder = dir;
+        updateFolderButtonDisplay();
+      }
+    }).catch(err => {
+      console.warn("Could not get download dir:", err);
+    });
+  }
+}
+
+function changeDownloadFolder() {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.choose_download_dir) {
+    window.pywebview.api.choose_download_dir().then(chosen => {
+      if (chosen) {
+        currentDownloadFolder = chosen;
+        updateFolderButtonDisplay();
+        const t = translations[currentLanguage] || translations["AZ"];
+        showInAppToast((t.folder_changed_toast || "Yükləmə qovluğu yeniləndi: ") + chosen, "success");
+      }
+    }).catch(err => {
+      console.error("Change download dir error:", err);
+    });
+  }
+}
+
 // Initialize Application UI
 document.addEventListener("DOMContentLoaded", () => {
   setMediaType("audio");
@@ -284,6 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Expose API check to python loaded hook
   setTimeout(() => {
     checkFfmpeg();
+    loadDownloadFolder();
     if (window.pywebview && window.pywebview.api && window.pywebview.api.check_updates) {
       window.pywebview.api.check_updates();
     }
@@ -294,60 +390,73 @@ function changeLanguage(lang) {
   currentLanguage = lang;
   const htmlLangMap = { "AZ": "az", "EN": "en", "РУС": "ru" };
   document.documentElement.lang = htmlLangMap[lang] || "en";
-  const t = translations[lang];
+  const t = translations[lang] || translations["AZ"];
 
-  // Update header and labels
-  document.getElementById("header-subtitle").textContent = t.subtitle;
-  document.getElementById("lbl-url").textContent = t.lbl_url;
-  document.getElementById("btn-paste").textContent = t.btn_paste;
-  document.getElementById("btn-playlist-paste").textContent = t.btn_playlist_paste;
-  document.getElementById("lbl-media").textContent = t.lbl_media;
-  document.getElementById("lbl-format").textContent = t.lbl_format;
-  document.getElementById("lbl-quality").textContent = t.lbl_quality;
-  document.getElementById("lbl-audio-segment").textContent = t.lbl_audio_segment;
-  document.getElementById("lbl-video-segment").textContent = t.lbl_video_segment;
-  document.getElementById("lbl-fetch-btn").textContent = t.lbl_fetch_btn;
-  document.getElementById("lbl-select-all").textContent = t.lbl_select_all;
-  document.getElementById("lbl-download-selected").textContent = t.lbl_download_selected;
-  document.getElementById("history-title").textContent = t.history_title;
+  // 1. Instant active state animation on language pills
+  const activeLangClass = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#9D4EDD] text-white shadow-md shadow-[#9D4EDD]/30 transition-all duration-300 ease-out cursor-pointer scale-105";
+  const inactiveLangClass = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-[#A0A0A0] hover:text-white hover:bg-white/5 transition-all duration-300 ease-out cursor-pointer scale-100";
 
-  const navSingleLabel = document.getElementById("nav-single-label");
-  if (navSingleLabel) navSingleLabel.textContent = t.nav_single;
-  const navPlaylistLabel = document.getElementById("nav-playlist-label");
-  if (navPlaylistLabel) navPlaylistLabel.textContent = t.nav_playlist;
+  const btnAz = document.getElementById("lang-az");
+  const btnEn = document.getElementById("lang-en");
+  const btnRus = document.getElementById("lang-rus");
 
-  // Update input placeholders
+  if (btnAz) btnAz.className = (lang === "AZ") ? activeLangClass : inactiveLangClass;
+  if (btnEn) btnEn.className = (lang === "EN") ? activeLangClass : inactiveLangClass;
+  if (btnRus) btnRus.className = (lang === "РУС") ? activeLangClass : inactiveLangClass;
+
+  const safeSetText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el && text !== undefined && text !== null) el.textContent = text;
+  };
+
+  // 2. Safe UI labels
+  safeSetText("header-subtitle", t.subtitle);
+  safeSetText("lbl-url", t.lbl_url);
+  safeSetText("btn-paste", t.btn_paste);
+  safeSetText("btn-playlist-paste", t.btn_playlist_paste);
+  safeSetText("lbl-media", t.lbl_media);
+  safeSetText("lbl-format", t.lbl_format);
+  safeSetText("lbl-quality", t.lbl_quality);
+  safeSetText("lbl-audio-segment", t.lbl_audio_segment);
+  safeSetText("lbl-video-segment", t.lbl_video_segment);
+  safeSetText("lbl-fetch-btn", t.lbl_fetch_btn);
+  safeSetText("lbl-select-all", t.lbl_select_all);
+  safeSetText("lbl-download-selected", t.lbl_download_selected);
+  safeSetText("history-title", t.history_title);
+  safeSetText("nav-single-label", t.nav_single);
+  safeSetText("nav-playlist-label", t.nav_playlist);
+
+  const folderBtn = document.getElementById("btn-download-folder");
+  if (folderBtn && t.btn_download_folder_title) {
+    folderBtn.title = t.btn_download_folder_title;
+  }
+  updateFolderButtonDisplay();
+
+  // Status Filter Labels (Hamısı, Yüklənənlər, Yüklənməyənlər)
+  safeSetText("lbl-filter-all", t.filter_all || "Hamısı");
+  safeSetText("lbl-filter-downloaded", t.filter_downloaded || "Yüklənənlər");
+  safeSetText("lbl-filter-pending", t.filter_pending || "Yüklənməyənlər");
+
+  // Input placeholders
   const urlInput = document.getElementById("url-input");
   if (urlInput) {
     urlInput.placeholder = currentLanguage === "AZ"
-      ? (searchPlatform === "spotify" ? "Spotify linki yapışdırın və ya mahnı axtarın..." : "YouTube linki yapışdırın və ya mahnı axtarın...")
-      : (currentLanguage === "РУС" ? "Вставьте ссылку или ищите трек..." : "Paste link or search song...");
+      ? "YouTube və ya Spotify linki yapışdırın..."
+      : (currentLanguage === "РУС" ? "Вставьте ссылку на YouTube или Spotify..." : "Paste YouTube or Spotify link here...");
   }
   const playlistUrlInput = document.getElementById("playlist-url-input");
   if (playlistUrlInput) playlistUrlInput.placeholder = t.placeholder_playlist_url;
   const plSearchInput = document.getElementById("playlist-search");
   if (plSearchInput) plSearchInput.placeholder = t.search_placeholder || "Mahnı və ya sənətçi axtar...";
 
-  // Status Filter Labels
-  const filterAllLbl = document.getElementById("lbl-filter-all");
-  if (filterAllLbl) filterAllLbl.textContent = t.filter_all || "Hamısı";
-  const filterDlLbl = document.getElementById("lbl-filter-downloaded");
-  if (filterDlLbl) filterDlLbl.textContent = t.filter_downloaded || "Yüklənənlər";
-  const filterPendLbl = document.getElementById("lbl-filter-pending");
-  if (filterPendLbl) filterPendLbl.textContent = t.filter_pending || "Yüklənməyənlər";
-
   // Modals & Toolbar Buttons
-  const manageApiKeyBtn = document.getElementById("btn-manage-api-key");
-  if (manageApiKeyBtn) manageApiKeyBtn.textContent = t.btn_manage_api_key || "API Key";
-
-  const spotifyModalTitle = document.getElementById("spotify-modal-title");
-  if (spotifyModalTitle) spotifyModalTitle.textContent = t.spotify_modal_title;
-  const spotifyModalDesc = document.getElementById("spotify-modal-desc");
-  if (spotifyModalDesc) spotifyModalDesc.textContent = t.spotify_modal_desc;
-  const spotifyInstTitle = document.getElementById("spotify-inst-title");
-  if (spotifyInstTitle) spotifyInstTitle.textContent = t.spotify_inst_title;
-  const spotifySiteBtn = document.getElementById("btn-spotify-site-text");
-  if (spotifySiteBtn) spotifySiteBtn.textContent = t.btn_spotify_site || "Spotify-a Keç";
+  safeSetText("btn-manage-api-key", t.btn_manage_api_key || "API Key");
+  safeSetText("spotify-modal-title", t.spotify_modal_title);
+  safeSetText("spotify-modal-desc", t.spotify_modal_desc);
+  safeSetText("spotify-inst-title", t.spotify_inst_title);
+  safeSetText("btn-spotify-site-text", t.btn_spotify_site || "Spotify-a Keç");
+  safeSetText("btn-spotify-cancel", t.btn_spotify_cancel);
+  safeSetText("btn-spotify-save", t.btn_spotify_save);
 
   const instList = document.getElementById("spotify-inst-list");
   if (instList) {
@@ -358,36 +467,22 @@ function changeLanguage(lang) {
     `;
   }
 
-  const btnSpotifyCancel = document.getElementById("btn-spotify-cancel");
-  if (btnSpotifyCancel) btnSpotifyCancel.textContent = t.btn_spotify_cancel;
-  const btnSpotifySave = document.getElementById("btn-spotify-save");
-  if (btnSpotifySave) btnSpotifySave.textContent = t.btn_spotify_save;
+  safeSetText("ffmpeg-modal-title", t.ffmpeg_modal_title);
+  safeSetText("ffmpeg-stat-lbl-size", t.ffmpeg_stat_size);
+  safeSetText("ffmpeg-stat-lbl-speed", t.ffmpeg_stat_speed);
+  safeSetText("ffmpeg-stat-lbl-eta", t.ffmpeg_stat_eta);
+  safeSetText("ffmpeg-modal-note", t.ffmpeg_modal_note);
+  safeSetText("lbl-cancel-playlist", t.btn_cancel_playlist);
+  safeSetText("spotify-limit-title", t.spotify_limit_title);
+  safeSetText("spotify-limit-desc", t.spotify_limit_desc);
 
-  const ffmpegTitle = document.getElementById("ffmpeg-modal-title");
-  if (ffmpegTitle) ffmpegTitle.textContent = t.ffmpeg_modal_title;
-  const ffmpegStatSize = document.getElementById("ffmpeg-stat-lbl-size");
-  if (ffmpegStatSize) ffmpegStatSize.textContent = t.ffmpeg_stat_size;
-  const ffmpegStatSpeed = document.getElementById("ffmpeg-stat-lbl-speed");
-  if (ffmpegStatSpeed) ffmpegStatSpeed.textContent = t.ffmpeg_stat_speed;
-  const ffmpegStatEta = document.getElementById("ffmpeg-stat-lbl-eta");
-  if (ffmpegStatEta) ffmpegStatEta.textContent = t.ffmpeg_stat_eta;
-  const ffmpegNote = document.getElementById("ffmpeg-modal-note");
-  if (ffmpegNote) ffmpegNote.textContent = t.ffmpeg_modal_note;
-  const cancelPlaylistLbl = document.getElementById("lbl-cancel-playlist");
-  if (cancelPlaylistLbl) cancelPlaylistLbl.textContent = t.btn_cancel_playlist;
-
-  const spotifyLimitTitle = document.getElementById("spotify-limit-title");
-  if (spotifyLimitTitle && t.spotify_limit_title) spotifyLimitTitle.textContent = t.spotify_limit_title;
-  const spotifyLimitDesc = document.getElementById("spotify-limit-desc");
-  if (spotifyLimitDesc && t.spotify_limit_desc) spotifyLimitDesc.textContent = t.spotify_limit_desc;
-
-  document.getElementById("gopro-title").textContent = t.gopro_title;
-  document.getElementById("gopro-desc").textContent = t.gopro_desc;
-  document.getElementById("gopro-feat-1").textContent = t.gopro_feat_1;
-  document.getElementById("gopro-feat-2").textContent = t.gopro_feat_2;
-  document.getElementById("gopro-feat-3").textContent = t.gopro_feat_3;
-  document.getElementById("gopro-feat-4").textContent = t.gopro_feat_4;
-  document.getElementById("btn-gopro-purchase").textContent = isPremiumActive ? t.status_premium_btn_done : t.btn_gopro_purchase;
+  safeSetText("gopro-title", t.gopro_title);
+  safeSetText("gopro-desc", t.gopro_desc);
+  safeSetText("gopro-feat-1", t.gopro_feat_1);
+  safeSetText("gopro-feat-2", t.gopro_feat_2);
+  safeSetText("gopro-feat-3", t.gopro_feat_3);
+  safeSetText("gopro-feat-4", t.gopro_feat_4);
+  safeSetText("btn-gopro-purchase", isPremiumActive ? t.status_premium_btn_done : t.btn_gopro_purchase);
 
   const sidebarBtnSpan = document.querySelector("#btn-gopro-sidebar");
   if (sidebarBtnSpan) {
@@ -411,26 +506,47 @@ function changeLanguage(lang) {
   }
 
   // Footer
-  document.getElementById("footer-version").textContent = `${lang === "AZ" ? "Versiya" : (lang === "EN" ? "Version" : "Версия")}: v1.0.5`;
+  safeSetText("footer-version", "v1.8");
 
-  // Refresh empty state translation
+  // History empty state
   const historyList = document.getElementById("history-list");
-  if (historyList.children.length === 1 && historyList.children[0].id === "history-empty") {
-    document.getElementById("history-empty").textContent = t.history_empty;
+  if (historyList && historyList.children.length === 1 && historyList.children[0].id === "history-empty") {
+    safeSetText("history-empty", t.history_empty);
   }
 
-  // Active states for language buttons
-  const langMap = { "AZ": "az", "EN": "en", "РУС": "rus" };
-  ["az", "en", "rus"].forEach(id => {
-    const btn = document.getElementById(`lang-${id}`);
-    if (!btn) return;
-    btn.className = (langMap[lang] === id)
-      ? "px-3 py-1 text-[10px] font-bold rounded-md bg-[#9D4EDD] text-white transition-all"
-      : "px-3 py-1 text-[10px] font-bold rounded-md text-[#A0A0A0] hover:text-white transition-all";
-  });
+  // Update playlist status text
+  updatePlaylistStatusMsg();
 
-  // Update download button label
+  // Re-render track list and parts if loaded
+  try {
+    if (fetchedTracks && fetchedTracks.length > 0) {
+      renderTrackPage();
+      if (currentPlaylistTotal > 100) {
+        renderPlaylistPartButtons(currentPlaylistTotal, currentPlaylistOffset, currentPlaylistLimit);
+      }
+    }
+  } catch (e) {
+    console.error("Error updating playlist tracks on language change:", e);
+  }
+
+  // Update download button labels
   updateDownloadButtonLabel();
+  updateDownloadSelectedButtonText();
+}
+
+function updatePlaylistStatusMsg() {
+  const plStatus = document.getElementById("playlist-status-msg");
+  if (!plStatus || !currentPlaylistName) return;
+  if (currentPlaylistTotal > 100) {
+    const partNum = Math.floor(currentPlaylistOffset / currentPlaylistLimit) + 1;
+    const startNum = currentPlaylistOffset + 1;
+    const endNum = Math.min(currentPlaylistOffset + (fetchedTracks ? fetchedTracks.length : 0), currentPlaylistTotal);
+    const partWord = currentLanguage === "AZ" ? "Part" : (currentLanguage === "EN" ? "Part" : "Часть");
+    plStatus.textContent = `${currentPlaylistName} — ${partWord} ${partNum} (${startNum}-${endNum} / ${currentPlaylistTotal})`;
+  } else if (currentPlaylistTotal > 0) {
+    const trackWord = currentLanguage === "AZ" ? "mahnı" : (currentLanguage === "EN" ? "tracks" : "треков");
+    plStatus.textContent = `${currentPlaylistName} (${currentPlaylistTotal} ${trackWord})`;
+  }
 }
 
 function updateDownloadButtonLabel() {
@@ -827,8 +943,19 @@ let currentPlaylistOffset = 0;
 let currentPlaylistLimit = 100;
 let currentPlaylistTotal = 0;
 const playlistPartCache = {}; // cacheKey: `${url}_${offset}_${limit}` -> res
+let isPlaylistLoading = false;
+let currentLoadingPartNum = null;
 
 function fetchPlaylist(offset = 0, limit = 100) {
+  const targetPart = Math.floor(offset / limit) + 1;
+
+  if (isPlaylistLoading) {
+    const activeMsg = currentLoadingPartNum ? `Part ${currentLoadingPartNum}` : "Part";
+    const warnTemplate = translations[currentLanguage].wait_loading_part || "Zəhmət olmasa gözləyin, hazırda {part} yüklənir...";
+    showInAppToast(warnTemplate.replace("{part}", activeMsg), "error");
+    return;
+  }
+
   const urlInput = document.getElementById("playlist-url-input");
   const url = (urlInput ? urlInput.value.trim() : "") || lastPlaylistUrl;
   if (!url) {
@@ -845,14 +972,32 @@ function fetchPlaylist(offset = 0, limit = 100) {
     return;
   }
 
+  isPlaylistLoading = true;
+  currentLoadingPartNum = targetPart;
+
+  let loadingNotice = "";
+  if (offset === 0 && !currentPlaylistTotal) {
+    loadingNotice = translations[currentLanguage].wait_preparing_playlist || "Zəhmət olmasa gözləyin, pleylist məlumatları alınır və hissələrə bölünür...";
+  } else {
+    const noticeTemplate = translations[currentLanguage].loading_part_notice || "Part {part} yüklənir, zəhmət olmasa gözləyin...";
+    loadingNotice = noticeTemplate.replace("{part}", targetPart);
+  }
+  showInAppToast(loadingNotice, "success");
+
   const btn = document.getElementById("btn-fetch-playlist");
-  btn.setAttribute("disabled", "true");
-  btn.textContent = currentLanguage === "AZ" ? "Yüklənir..." : "Fetching...";
+  if (btn) {
+    btn.setAttribute("disabled", "true");
+    btn.textContent = currentLanguage === "AZ" ? "Yüklənir..." : "Fetching...";
+  }
 
   if (window.pywebview && window.pywebview.api) {
     window.pywebview.api.fetch_playlist(url, offset, limit).then(res => {
-      btn.removeAttribute("disabled");
-      btn.innerHTML = `<span id="lbl-fetch-btn">${translations[currentLanguage].lbl_fetch_btn}</span>`;
+      isPlaylistLoading = false;
+      currentLoadingPartNum = null;
+      if (btn) {
+        btn.removeAttribute("disabled");
+        btn.innerHTML = `<span id="lbl-fetch-btn">${translations[currentLanguage].lbl_fetch_btn}</span>`;
+      }
 
       if (res.error) {
         if (res.error === "spotify_auth_required") {
@@ -872,7 +1017,18 @@ function fetchPlaylist(offset = 0, limit = 100) {
         playlistPartCache[cacheKey] = res;
         displayTracks(res.playlist_name, res.tracks, res);
       }
+    }).catch(err => {
+      isPlaylistLoading = false;
+      currentLoadingPartNum = null;
+      if (btn) {
+        btn.removeAttribute("disabled");
+        btn.innerHTML = `<span id="lbl-fetch-btn">${translations[currentLanguage].lbl_fetch_btn}</span>`;
+      }
+      showInAppToast("Error: " + err, "error");
     });
+  } else {
+    isPlaylistLoading = false;
+    currentLoadingPartNum = null;
   }
 }
 
@@ -885,6 +1041,7 @@ function renderPlaylistPartButtons(totalTracks, activeOffset, limit) {
   const banner = document.getElementById("spotify-limit-banner");
   const container = document.getElementById("playlist-part-container");
   const badge = document.getElementById("spotify-total-badge");
+  const countInfo = document.getElementById("spotify-parts-count-info");
   if (!banner || !container) return;
 
   if (!totalTracks || totalTracks <= 100) {
@@ -901,6 +1058,13 @@ function renderPlaylistPartButtons(totalTracks, activeOffset, limit) {
 
   container.innerHTML = "";
   const totalParts = Math.ceil(totalTracks / limit);
+  const currentPartIndex = Math.floor(activeOffset / limit) + 1;
+
+  if (countInfo) {
+    countInfo.textContent = currentLanguage === "AZ"
+      ? `Hissə: ${currentPartIndex} / ${totalParts}`
+      : (currentLanguage === "EN" ? `Part: ${currentPartIndex} / ${totalParts}` : `Часть: ${currentPartIndex} / ${totalParts}`);
+  }
 
   for (let p = 0; p < totalParts; p++) {
     const partOffset = p * limit;
@@ -910,9 +1074,17 @@ function renderPlaylistPartButtons(totalTracks, activeOffset, limit) {
 
     const btn = document.createElement("button");
     btn.className = isActive
-      ? "px-3 py-1.5 rounded-xl text-xs font-black bg-[#1DB954] text-black shadow-md shadow-[#1DB954]/25 transition-all transform scale-105"
-      : "px-3 py-1.5 rounded-xl text-xs font-bold bg-[#242424] hover:bg-[#2e2e2e] text-[#A0A0A0] hover:text-white border border-[#2e2e2e] hover:border-[#1DB954]/50 transition-all";
-    btn.innerHTML = `<i class="fa-brands fa-spotify text-[11px] mr-1"></i> Part ${p + 1} <span class="opacity-75 text-[10px]">(${startNum}-${endNum})</span>`;
+      ? "flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-black bg-[#1DB954] text-black shadow-md shadow-[#1DB954]/25 transition-all truncate border border-[#1DB954] cursor-pointer"
+      : "flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-semibold bg-[#202020] hover:bg-[#282828] text-[#E5E7EB] hover:text-white border border-[#2F2F2F] hover:border-[#1DB954]/60 transition-all truncate cursor-pointer";
+    
+    btn.innerHTML = `
+      <span class="flex items-center gap-2 truncate">
+        <i class="fa-brands fa-spotify text-xs ${isActive ? 'text-black' : 'text-[#1DB954]'} shrink-0"></i>
+        <span class="font-extrabold tracking-wide truncate">Part ${p + 1}</span>
+      </span>
+      <span class="text-[10px] ${isActive ? 'text-black/85 font-black' : 'text-[#9CA3AF] font-medium'} ml-2 shrink-0">(${startNum}-${endNum})</span>
+    `;
+    btn.title = `Part ${p + 1} (${startNum} - ${endNum})`;
     btn.onclick = () => {
       fetchPlaylist(partOffset, limit);
     };
@@ -933,14 +1105,12 @@ function displayTracks(playlistName, tracks, resInfo = null) {
   const offset = resInfo && resInfo.offset !== undefined ? resInfo.offset : 0;
   const limit = resInfo && resInfo.limit ? resInfo.limit : 100;
 
-  if (total > 100) {
-    const partNum = Math.floor(offset / limit) + 1;
-    const startNum = offset + 1;
-    const endNum = Math.min(offset + tracks.length, total);
-    document.getElementById("playlist-status-msg").textContent = `${playlistName} — Part ${partNum} (${startNum}-${endNum} / ${total})`;
-  } else {
-    document.getElementById("playlist-status-msg").textContent = `${playlistName} (${tracks.length} tracks)`;
-  }
+  currentPlaylistName = playlistName || "";
+  currentPlaylistTotal = total;
+  currentPlaylistOffset = offset;
+  currentPlaylistLimit = limit;
+
+  updatePlaylistStatusMsg();
 
   // Render part pagination if 100+ tracks
   renderPlaylistPartButtons(total, offset, limit);
@@ -1058,8 +1228,9 @@ function renderTrackPage() {
       statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#A0A0A0]"><i class="fa-solid fa-ban text-xs"></i></span>`;
     }
 
+    const downloadedBadgeText = translations[currentLanguage].badge_downloaded || "Yüklənib";
     const downloadedBadge = status === 'downloaded'
-      ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 shrink-0">Yüklənib</span>`
+      ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 shrink-0">${downloadedBadgeText}</span>`
       : '';
 
     row.innerHTML = `
@@ -1105,8 +1276,11 @@ function renderTrackPage() {
       return btn;
     };
 
+    const prevLabel = translations[currentLanguage].pager_prev || "Əvvəlki";
+    const nextLabel = translations[currentLanguage].pager_next || "Növbəti";
+
     const prevBtn = makePagerBtn(
-      'Əvvəlki',
+      prevLabel,
       '<i class="fa-solid fa-chevron-left" style="font-size:9px"></i>',
       currentTrackPage - 1,
       currentTrackPage === 0
@@ -1114,15 +1288,21 @@ function renderTrackPage() {
 
     const info = document.createElement("span");
     info.style.cssText = "font-size:11px;color:#A0A0A0;font-weight:700;";
-    info.textContent = `Səhifə ${currentTrackPage + 1} / ${totalPages}  ·  ${start + 1}–${end} / ${total} mahnı`;
+    const rawInfo = translations[currentLanguage].pager_info || "Səhifə {page} / {totalPages} · {start}–{end} / {total} mahnı";
+    info.textContent = rawInfo
+      .replace("{page}", currentTrackPage + 1)
+      .replace("{totalPages}", totalPages)
+      .replace("{start}", start + 1)
+      .replace("{end}", end)
+      .replace("{total}", total);
 
     const nextBtn = makePagerBtn(
-      'Növbəti',
+      nextLabel,
       '',
       currentTrackPage + 1,
       currentTrackPage >= totalPages - 1
     );
-    nextBtn.innerHTML = `Növbəti <i class="fa-solid fa-chevron-right" style="font-size:9px"></i>`;
+    nextBtn.innerHTML = `${nextLabel} <i class="fa-solid fa-chevron-right" style="font-size:9px"></i>`;
     if (currentTrackPage < totalPages - 1) {
       nextBtn.onmouseenter = () => { nextBtn.style.background = '#3A3A3A'; };
       nextBtn.onmouseleave = () => { nextBtn.style.background = '#282828'; };
@@ -1293,13 +1473,17 @@ window.updatePlaylistDownloadProgress = (overallPct, currentIdx, totalTracks, tr
   if (barFill) barFill.style.width = `${overallPct}%`;
   if (titleEl) titleEl.textContent = `(${currentIdx + 1}/${totalTracks}) ${trackTitle}`;
   if (countEl) {
+    const unit = translations[currentLanguage].songs_unit || "mahnı";
     if (totMb > 0) {
-      countEl.textContent = `${currentIdx + 1} / ${totalTracks} mahnı (${dlMb} / ${totMb} MB)`;
+      countEl.textContent = `${currentIdx + 1} / ${totalTracks} ${unit} (${dlMb} / ${totMb} MB)`;
     } else {
-      countEl.textContent = `${currentIdx + 1} / ${totalTracks} mahnı`;
+      countEl.textContent = `${currentIdx + 1} / ${totalTracks} ${unit}`;
     }
   }
-  if (speedEl) speedEl.textContent = `Sürət: ${speedStr}`;
+  if (speedEl) {
+    const spdLbl = translations[currentLanguage].ffmpeg_stat_speed || "Sürət";
+    speedEl.textContent = `${spdLbl}: ${speedStr}`;
+  }
   
   // Also update single downloader progress if visible
   const detailStr = `(${currentIdx + 1}/${totalTracks}) ${trackTitle}`;
@@ -1522,9 +1706,12 @@ function activatePremium(event) {
 }
 
 let updateUrl = "";
+let updateExeUrl = "";
+let isUpdatingNow = false;
 
-window.showUpdateNotification = (version, url) => {
+window.showUpdateNotification = (version, url, exeUrl = "") => {
   updateUrl = url;
+  updateExeUrl = exeUrl;
   
   const t = translations[currentLanguage];
   const titleEl = document.getElementById("update-toast-title");
@@ -1535,7 +1722,10 @@ window.showUpdateNotification = (version, url) => {
   if (titleEl) titleEl.textContent = t.update_title || "Yeni yenilənmə var! 🚀";
   if (descEl) descEl.textContent = (t.update_desc || "Yeni versiya ({version}) artıq hazırdır. Yenilikləri və təkmilləşdirmələri əldə etmək üçün yükləyin.").replace("{version}", version);
   if (closeBtn) closeBtn.textContent = t.btn_update_close || "Bağla";
-  if (dlBtn) dlBtn.textContent = t.btn_update_download || "İndi Yüklə";
+  if (dlBtn) {
+    dlBtn.textContent = t.btn_update_download || "İndi Yüklə";
+    dlBtn.removeAttribute("disabled");
+  }
   
   const toast = document.getElementById("update-toast");
   if (toast) {
@@ -1545,6 +1735,7 @@ window.showUpdateNotification = (version, url) => {
 };
 
 function closeUpdateToast() {
+  if (isUpdatingNow) return;
   const toast = document.getElementById("update-toast");
   if (toast) {
     toast.classList.add("pointer-events-none", "translate-y-12", "opacity-0");
@@ -1553,11 +1744,51 @@ function closeUpdateToast() {
 }
 
 function downloadUpdate() {
-  if (updateUrl && window.pywebview && window.pywebview.api && window.pywebview.api.open_external_url) {
+  if (isUpdatingNow) return;
+
+  const dlBtn = document.getElementById("btn-update-download");
+  const descEl = document.getElementById("update-toast-desc");
+
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.download_and_install_update) {
+    isUpdatingNow = true;
+    if (dlBtn) {
+      dlBtn.setAttribute("disabled", "true");
+      dlBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Yüklənir...';
+    }
+    if (descEl) {
+      descEl.textContent = "Yenilənmə faylı birbaşa yüklənir və tətbiq quraşdırılır...";
+    }
+    window.pywebview.api.download_and_install_update(updateExeUrl);
+  } else if (updateUrl && window.pywebview && window.pywebview.api && window.pywebview.api.open_external_url) {
     window.pywebview.api.open_external_url(updateUrl);
+    closeUpdateToast();
   }
-  closeUpdateToast();
 }
+
+window.updateUpdaterProgress = (pct, message) => {
+  const descEl = document.getElementById("update-toast-desc");
+  const dlBtn = document.getElementById("btn-update-download");
+  if (descEl && message) {
+    descEl.textContent = message;
+  }
+  if (dlBtn) {
+    dlBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> ${pct}%`;
+  }
+};
+
+window.onUpdaterError = (errMsg) => {
+  isUpdatingNow = false;
+  const dlBtn = document.getElementById("btn-update-download");
+  const descEl = document.getElementById("update-toast-desc");
+  if (dlBtn) {
+    dlBtn.removeAttribute("disabled");
+    dlBtn.textContent = translations[currentLanguage].btn_update_download || "İndi Yüklə";
+  }
+  if (descEl) {
+    descEl.textContent = "Yenilənmə xətası: " + errMsg;
+  }
+  showInAppToast("Yenilənmə xətası: " + errMsg, "error");
+};
 
 // ── Spotify-Style Search & Single URL Downloader Engine ──
 let searchPlatform = "youtube"; // 'youtube' or 'spotify'
@@ -1570,37 +1801,11 @@ let isSearching = false;
 
 function setSearchPlatform(platform) {
   searchPlatform = (platform === "spotify") ? "spotify" : "youtube";
-  const btnYoutube = document.getElementById("btn-tab-youtube");
-  const btnSpotify = document.getElementById("btn-tab-spotify");
-  const iconSpan = document.getElementById("input-platform-icon");
   const urlInput = document.getElementById("url-input");
-
-  const inactiveBtn = "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#A0A0A0] hover:text-white hover:bg-white/5 border border-transparent transition-all cursor-pointer";
-
-  if (searchPlatform === "youtube") {
-    if (btnYoutube) btnYoutube.className = "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#FF0000] bg-[#FF0000]/15 border border-[#FF0000]/40 transition-all cursor-pointer";
-    if (btnSpotify) btnSpotify.className = inactiveBtn;
-    if (iconSpan) {
-      iconSpan.className = "text-[#FF0000] px-3 transition-colors";
-      iconSpan.innerHTML = '<i class="fa-brands fa-youtube text-base"></i>';
-    }
-    if (urlInput) {
-      urlInput.placeholder = currentLanguage === "AZ"
-        ? "YouTube linki yapışdırın, yaxud mahnı axtarın..."
-        : (currentLanguage === "РУС" ? "Вставьте ссылку YouTube или ищите трек..." : "Paste YouTube link or search track...");
-    }
-  } else {
-    if (btnSpotify) btnSpotify.className = "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#1DB954] bg-[#1DB954]/15 border border-[#1DB954]/40 transition-all cursor-pointer";
-    if (btnYoutube) btnYoutube.className = inactiveBtn;
-    if (iconSpan) {
-      iconSpan.className = "text-[#1DB954] px-3 transition-colors";
-      iconSpan.innerHTML = '<i class="fa-brands fa-spotify text-base"></i>';
-    }
-    if (urlInput) {
-      urlInput.placeholder = currentLanguage === "AZ"
-        ? "Spotify linki yapışdırın, yaxud mahnı axtarın..."
-        : (currentLanguage === "РУС" ? "Вставьте ссылку Spotify или ищите трек..." : "Paste Spotify link or search track...");
-    }
+  if (urlInput) {
+    urlInput.placeholder = currentLanguage === "AZ"
+      ? "YouTube və ya Spotify linki yapışdırın..."
+      : (currentLanguage === "РУС" ? "Вставьте ссылку на YouTube или Spotify..." : "Paste YouTube or Spotify link here...");
   }
 
   // If user already typed something, re-trigger search for newly active platform
@@ -1845,11 +2050,7 @@ function updateSelectedIndicator() {
   if (urlInput) {
     if (count > 0) {
       urlInput.value = currentLanguage === "AZ" ? `Seçilmiş Mahnılar (${count})` : `Selected Tracks (${count})`;
-      const iconSpan = document.getElementById("input-platform-icon");
-      if (iconSpan) {
-        iconSpan.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
-        iconSpan.className = "text-[#FF0000] px-3 transition-colors";
-      }
+      // The platform icon is already managed by setSearchPlatform(), no need to force YouTube here.
     } else if (urlInput.value.startsWith("Seçilmiş Mahnılar") || urlInput.value.startsWith("Selected Tracks")) {
       urlInput.value = "";
     }
@@ -1863,10 +2064,13 @@ function updateSingleDownloadButton() {
 
   const count = persistentSelectedSongs.length;
   if (count > 0) {
-    lbl.textContent = `YÜKLƏ (${count} mahnı)`;
+    const t = translations[currentLanguage] || translations["AZ"];
+    const baseWord = t.lbl_download_btn || "Yüklə";
+    const songUnit = t.songs_unit || (currentLanguage === "РУС" ? "треков" : (currentLanguage === "EN" ? "tracks" : "mahnı"));
+    lbl.textContent = `${baseWord} (${count} ${songUnit})`;
   } else {
     const t = translations[currentLanguage] || translations["AZ"];
-    lbl.textContent = t.lbl_download_btn || "YÜKLƏ";
+    lbl.textContent = t.lbl_download_btn || "Yüklə";
   }
 }
 
@@ -1902,7 +2106,7 @@ function downloadSelectedSearchResults() {
       btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>${txt}</span>`;
     }
 
-    const tMsg = currentLanguage === "AZ" ? "mahnı üçün qovluq seçin..." : (currentLanguage === "РУС" ? "треков выбрано. Выберите папку..." : "tracks selected. Choose save folder...");
+    const tMsg = currentLanguage === "AZ" ? "mahnının yüklənməsi başladıldı..." : (currentLanguage === "РУС" ? "треков загружаются..." : "tracks downloading...");
     showInAppToast(`${tracksToDownload.length} ${tMsg}`, "info");
 
     const progBox = document.getElementById("progress-box");

@@ -1,0 +1,39 @@
+# Virtual Environment (Python virtual mühiti - heç vaxt GitHub-a getməməlidir)
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & compiled bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# PyInstaller Build Artifacts & Executables
+TrackDrop.exe
+*.exe
+src/build/
+build/
+dist/
+*.spec
+
+# Local user configs, caches, device identifiers & logs
+spotify_config.json
+device_id.txt
+cache/
+*.log
+*.tmp
+
+# Operating System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# IDE and AI Agent files
+.agents/
+.vscode/
+.idea/

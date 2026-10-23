@@ -17,17 +17,41 @@ import yt_dlp
 # pyrefly: ignore [missing-import]
 import webview
 
-CURRENT_VERSION = "v1.0.5"
+try:
+    import telemetry
+except ImportError:
+    try:
+        from src import telemetry
+    except ImportError:
+        telemetry = None
+
+CURRENT_VERSION = "v1.8"
 GITHUB_REPO = "nakhidb/MP3-MP4-Downloader"
 
 # Get config directory and config file path
 def get_config_dir():
-    config_dir = os.path.join(os.path.expanduser("~"), ".trackdrop")
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data and os.path.exists(local_app_data):
+        config_dir = os.path.join(local_app_data, "TrackDrop")
+    else:
+        config_dir = os.path.join(os.path.expanduser("~"), ".trackdrop")
     os.makedirs(config_dir, exist_ok=True)
     return config_dir
 
+def get_cache_dir():
+    cache_dir = os.path.join(get_config_dir(), "cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    return cache_dir
+
 def get_config_path():
     return os.path.join(get_config_dir(), "spotify_config.json")
+
+def get_default_download_dir():
+    # Prefer standard OS Downloads folder, fallback to user home directory
+    downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
+    if os.path.exists(downloads_dir):
+        return downloads_dir
+    return os.path.expanduser("~")
 
 class Bridge:
     def __init__(self):
@@ -48,6 +72,26 @@ class Bridge:
         self.cached_spotify_playlists = {}
         self.cached_playlist_parts = {}
         self._http_session = requests.Session()
+        self.update_downloading = False
+        self.update_progress = {"status": "idle", "pct": 0, "message": ""}
+
+    def _get_disk_cache(self, filename):
+        try:
+            cache_file = os.path.join(get_cache_dir(), filename)
+            if os.path.exists(cache_file):
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return None
+
+    def _save_disk_cache(self, filename, data):
+        try:
+            cache_file = os.path.join(get_cache_dir(), filename)
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False)
+        except Exception:
+            pass
 
     def get_ffmpeg_path(self):
         if hasattr(sys, '_MEIPASS'):
@@ -87,6 +131,8 @@ class Bridge:
             import io
 
             try:
+                if telemetry:
+                    telemetry.record_breadcrumb("ffmpeg", "FFmpeg prebuilt download started")
                 url = "https://github.com/ffbinaries/ffbinaries-prebuilt/releases/download/v4.4.1/ffmpeg-4.4.1-win-64.zip"
                 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
                 
@@ -153,6 +199,8 @@ class Bridge:
                 self.ffmpeg_downloading = False
                 self.eval_js(f"window.onFfmpegSuccess()")
             except Exception as e:
+                if telemetry:
+                    telemetry.capture_error(e, {"step": "download_ffmpeg"})
                 self.ffmpeg_downloading = False
                 self.ffmpeg_progress["status"] = "error"
                 self.ffmpeg_progress["message"] = str(e)
@@ -178,11 +226,122 @@ class Bridge:
                         latest_parsed = parse_version(latest_tag)
                         if latest_parsed > current_parsed:
                             html_url = data.get("html_url", f"https://github.com/{GITHUB_REPO}/releases")
-                            self.eval_js(f"window.showUpdateNotification('{latest_tag}', '{html_url}')")
+                            # Find .exe asset if available
+                            exe_download_url = ""
+                            for asset in data.get("assets", []):
+                                aname = asset.get("name", "").lower()
+                                if aname.endswith(".exe"):
+                                    exe_download_url = asset.get("browser_download_url", "")
+                                    break
+                            
+                            self.eval_js(f"window.showUpdateNotification('{latest_tag}', '{html_url}', '{exe_download_url}')")
             except Exception as e:
                 print(f"Error checking updates: {e}")
                 
         threading.Thread(target=worker, daemon=True).start()
+
+    def download_and_install_update(self, exe_url=""):
+        if self.update_downloading:
+            return {"status": "already_downloading"}
+
+        self.update_downloading = True
+
+        def worker():
+            import subprocess
+            try:
+                # 1. Fetch release details to ensure we have the direct exe download url
+                target_url = exe_url
+                if not target_url:
+                    rel_api = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+                    headers = {"User-Agent": "Mozilla/5.0"}
+                    r_rel = requests.get(rel_api, headers=headers, timeout=10)
+                    if r_rel.status_code == 200:
+                        rel_data = r_rel.json()
+                        for asset in rel_data.get("assets", []):
+                            if asset.get("name", "").lower().endswith(".exe"):
+                                target_url = asset.get("browser_download_url")
+                                break
+
+                if not target_url:
+                    raise Exception("Release-də .exe faylı tapılmadı!")
+
+                self.eval_js("window.updateUpdaterProgress(5, 'Yenilənmə faylı yüklənir...')")
+
+                headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+                r = requests.get(target_url, headers=headers, stream=True, timeout=30)
+                r.raise_for_status()
+
+                total_len = r.headers.get("content-length")
+                total_bytes = int(total_len) if total_len else 0
+
+                temp_dir = tempfile.gettempdir()
+                new_exe_path = os.path.join(temp_dir, "TrackDrop_Update.exe")
+
+                downloaded = 0
+                last_time = time.time()
+                with open(new_exe_path, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=65536):
+                        if not chunk:
+                            continue
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        now = time.time()
+                        if now - last_time >= 0.15:
+                            last_time = now
+                            if total_bytes > 0:
+                                pct = min(95, int((downloaded / total_bytes) * 90) + 5)
+                                self.eval_js(f"window.updateUpdaterProgress({pct}, '{pct}% yükləndi...')")
+
+                self.eval_js("window.updateUpdaterProgress(98, 'Quraşdırılır və yenidən başladılır...')")
+                time.sleep(0.5)
+
+                # Determine the current running exe path
+                current_exe = sys.executable
+                if not getattr(sys, 'frozen', False):
+                    # In development, try to target TrackDrop.exe in root dir if exists
+                    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                    possible_exe = os.path.join(root_dir, "TrackDrop.exe")
+                    if os.path.exists(possible_exe):
+                        current_exe = possible_exe
+
+                updater_bat = os.path.join(temp_dir, "trackdrop_updater.bat")
+                current_pid = os.getpid()
+
+                bat_content = f"""@echo off
+timeout /t 1 /nobreak >nul
+taskkill /f /pid {current_pid} >nul 2>&1
+timeout /t 1 /nobreak >nul
+:wait_loop
+del /f /q "{current_exe}" >nul 2>&1
+if exist "{current_exe}" (
+    timeout /t 1 /nobreak >nul
+    goto wait_loop
+)
+move /y "{new_exe_path}" "{current_exe}" >nul 2>&1
+start "" "{current_exe}"
+del "%~f0" >nul 2>&1
+exit
+"""
+                with open(updater_bat, "w", encoding="utf-8") as bf:
+                    bf.write(bat_content)
+
+                # Launch updater batch detached
+                subprocess.Popen(
+                    ["cmd.exe", "/c", updater_bat],
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+                )
+
+                self.eval_js("window.updateUpdaterProgress(100, 'Uğurlu! Yenidən başladılır...')")
+                time.sleep(0.8)
+                sys.exit(0)
+
+            except Exception as e:
+                print(f"Update install error: {e}")
+                self.update_downloading = False
+                self.eval_js(f"window.onUpdaterError({json.dumps(str(e))})")
+
+        threading.Thread(target=worker, daemon=True).start()
+        return {"status": "started"}
 
     def open_external_url(self, url):
         import webbrowser
@@ -199,6 +358,42 @@ class Bridge:
             except:
                 pass
         return {"client_id": "", "client_secret": "", "api_key": ""}
+
+    def get_download_dir(self):
+        config = self.get_spotify_config()
+        configured_dir = config.get("download_dir", "").strip()
+        if configured_dir and os.path.isdir(configured_dir):
+            return configured_dir
+        return get_default_download_dir()
+
+    def set_download_dir(self, new_dir):
+        new_dir = (new_dir or "").strip()
+        if not new_dir or not os.path.isdir(new_dir):
+            return {"success": False, "error": "Folder does not exist"}
+        path = get_config_path()
+        data = self.get_spotify_config()
+        data["download_dir"] = new_dir
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+            return {"success": True, "download_dir": new_dir}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def choose_download_dir(self):
+        if not self._window:
+            return None
+        current_dir = self.get_download_dir()
+        dialog_res = self._window.create_file_dialog(
+            dialog_type=webview.FOLDER_DIALOG,
+            directory=current_dir if os.path.exists(current_dir) else ""
+        )
+        if dialog_res and len(dialog_res) > 0:
+            chosen = dialog_res[0]
+            if chosen and os.path.isdir(chosen):
+                self.set_download_dir(chosen)
+                return chosen
+        return None
 
     def save_spotify_config(self, api_key_or_id, client_secret=""):
         path = get_config_path()
@@ -402,27 +597,30 @@ class Bridge:
             pass
         return ""
 
-    def _prefetch_playlist_part(self, playlist_id, offset, limit=100):
-        """Prefetch playlist part in background to make part switching instant."""
-        try:
-            cache_key = (playlist_id, offset, limit)
-            if cache_key in self.cached_playlist_parts:
-                return
-            self.get_spotify_playlist_no_api(playlist_id, offset=offset, limit=limit)
-        except:
-            pass
-
     def get_spotify_playlist_no_api(self, playlist_id, offset=0, limit=100):
-        """Fetch Spotify playlist tracks with real pagination support, thumbnail extraction and caching."""
+        """Fetch Spotify playlist tracks with real pagination support, disk caching and throttled workers."""
         cache_key = (playlist_id, offset, limit)
         if cache_key in self.cached_playlist_parts:
             return self.cached_playlist_parts[cache_key]
 
+        disk_part_file = f"pl_{playlist_id}_part_{offset}_{limit}.json"
+        disk_cached_part = self._get_disk_cache(disk_part_file)
+        if disk_cached_part and disk_cached_part.get("tracks"):
+            self.cached_playlist_parts[cache_key] = disk_cached_part
+            return disk_cached_part
+
         try:
             import html as html_mod
             cached_data = self.cached_spotify_playlists.get(playlist_id, {})
-            playlist_name = cached_data.get("name") or "Spotify Playlist"
+            playlist_name = cached_data.get("name")
             all_track_ids = cached_data.get("track_ids")
+
+            disk_meta_file = f"pl_{playlist_id}_meta.json"
+            if not all_track_ids or not playlist_name:
+                disk_meta = self._get_disk_cache(disk_meta_file)
+                if disk_meta:
+                    playlist_name = playlist_name or disk_meta.get("name")
+                    all_track_ids = all_track_ids or disk_meta.get("track_ids")
 
             if not all_track_ids:
                 all_track_ids = self.get_spotify_playlist_track_ids(playlist_id)
@@ -443,20 +641,19 @@ class Bridge:
                     if m:
                         js_data = json.loads(html_mod.unescape(m.group(1)))
                         entity = js_data.get("props", {}).get("pageProps", {}).get("state", {}).get("data", {}).get("entity", {})
-                        playlist_name = entity.get("title") or entity.get("name") or "Spotify Playlist"
+                        playlist_name = entity.get("title") or entity.get("name") or playlist_name or "Spotify Playlist"
                         track_list = entity.get("trackList", [])
                         
-                        # Extract track IDs from items to fetch thumbnails in parallel
                         track_ids_for_thumbs = []
                         for item in track_list:
                             uri = item.get("uri", "")
                             tid = uri.split(":")[-1] if uri else ""
                             track_ids_for_thumbs.append(tid)
 
-                        # Parallel fast fetch for thumbnails
+                        # Parallel fetch for thumbnails with CPU-safe worker count (8)
                         thumbnails = []
                         if track_ids_for_thumbs:
-                            with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
+                            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
                                 thumbnails = list(executor.map(self._fetch_single_track_thumbnail, track_ids_for_thumbs))
 
                         tracks = []
@@ -482,6 +679,11 @@ class Bridge:
                             "track_ids": all_track_ids,
                             "total": total
                         }
+                        self._save_disk_cache(disk_meta_file, {
+                            "name": playlist_name,
+                            "track_ids": all_track_ids,
+                            "total": total
+                        })
 
                         res = {
                             "playlist_name": playlist_name,
@@ -491,28 +693,22 @@ class Bridge:
                             "has_api": False
                         }
                         self.cached_playlist_parts[cache_key] = res
-
-                        # Trigger background prefetch for Part 2 if available
-                        if total and total > limit:
-                            threading.Thread(
-                                target=self._prefetch_playlist_part,
-                                args=(playlist_id, limit, limit),
-                                daemon=True
-                            ).start()
-
+                        self._save_disk_cache(disk_part_file, res)
                         return res
 
             # If offset > 0 (Part 2, Part 3, etc.), fetch tracks from discovered track IDs
             if all_track_ids:
                 sub_ids = all_track_ids[offset:offset+limit]
                 tracks = []
-                with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
+                # Throttled to 8 workers to prevent 100% CPU lockup
+                with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
                     results = list(executor.map(self._fetch_single_track_embed, sub_ids))
                 tracks = [t for t in results if t]
 
                 if not total:
                     total = len(all_track_ids)
 
+                playlist_name = playlist_name or "Spotify Playlist"
                 res = {
                     "playlist_name": playlist_name,
                     "tracks": tracks,
@@ -521,16 +717,7 @@ class Bridge:
                     "has_api": False
                 }
                 self.cached_playlist_parts[cache_key] = res
-
-                # Trigger background prefetch for next part if available
-                next_offset = offset + limit
-                if total and total > next_offset:
-                    threading.Thread(
-                        target=self._prefetch_playlist_part,
-                        args=(playlist_id, next_offset, limit),
-                        daemon=True
-                    ).start()
-
+                self._save_disk_cache(disk_part_file, res)
                 return res
 
             return None
@@ -603,7 +790,7 @@ class Bridge:
                                 "thumbnail": thumb,
                                 "url": f"ytsearch1:{artist_str} - {name}"
                             })
-                        return {
+                        res_api = {
                             "playlist_name": playlist_name,
                             "tracks": tracks,
                             "total_tracks": total_tracks or len(tracks),
@@ -611,6 +798,8 @@ class Bridge:
                             "limit": limit,
                             "has_api": True
                         }
+                        self._save_disk_cache(f"pl_{playlist_id}_part_{offset}_{limit}.json", res_api)
+                        return res_api
                     elif status in (401, 403):
                         print(f"Spotify token rejected ({status}), clearing config")
                         self.save_spotify_config("")
@@ -713,6 +902,13 @@ class Bridge:
                 self.eval_js("window.showFfmpegModal()")
                 return
             try:
+                if telemetry:
+                    telemetry.record_breadcrumb("download_single", "Single download initiated", {
+                        "media_type": media_type,
+                        "quality": quality,
+                        "ext": ext,
+                        "is_spotify": "spotify.com" in url
+                    })
                 # Check if it is a playlist link
                 is_spotify_playlist = "spotify.com" in url and "playlist/" in url
                 is_youtube_playlist = "youtube.com" in url and ("playlist" in url or "list=" in url)
@@ -778,28 +974,23 @@ class Bridge:
                     
                 clean_title = re.sub(r'[\\/*?:"<>|]', "", video_title)
                 
-                # 2. Open Save File Dialog
-                dialog_res = self._window.create_file_dialog(
-                    dialog_type=webview.SAVE_DIALOG,
-                    save_filename=f"{clean_title}.{ext.lower()}"
-                )
-                if not dialog_res:
-                    self.eval_js("window.resetDownloadButton()")
-                    return
-                target_filepath = dialog_res[0]
-                
-                # Strip the extension suffix if it matches ext.lower() to prevent duplicate extension (.mp3.mp3)
-                base_path = target_filepath
-                ext_suffix = f".{ext.lower()}"
-                if base_path.lower().endswith(ext_suffix):
-                    base_path = base_path[:-len(ext_suffix)]
-                outtmpl_path = base_path + '.%(ext)s'
+                # 2. Determine target save directory and filepath
+                save_dir = self.get_download_dir()
+                os.makedirs(save_dir, exist_ok=True)
+
+                base_name = clean_title
+                counter = 1
+                while os.path.exists(os.path.join(save_dir, f"{base_name}.{ext.lower()}")):
+                    base_name = f"{clean_title} ({counter})"
+                    counter += 1
+
+                target_filepath = os.path.join(save_dir, f"{base_name}.{ext.lower()}")
+                outtmpl_path = os.path.join(save_dir, base_name + '.%(ext)s')
+
                 # 3. Perform download
                 self.eval_js("window.updateDownloadProgress(0, 'downloading', 'Yüklənir...')")
                 ffmpeg_location = self.get_ffmpeg_path()
-                
-                save_dir = os.path.dirname(target_filepath)
-                file_basename = os.path.basename(base_path)
+                file_basename = base_name
                 
                 def ytdl_hook(d):
                     if self.download_cancelled:
@@ -880,6 +1071,13 @@ class Bridge:
                 elif "ERROR_PLAYLIST_IN_SINGLE" in str(e):
                     self.eval_js("window.updateDownloadProgress(0, 'error', 'ERROR_PLAYLIST_IN_SINGLE')")
                 else:
+                    if telemetry:
+                        telemetry.capture_error(e, {
+                            "step": "download_single",
+                            "media_type": media_type,
+                            "quality": quality,
+                            "ext": ext
+                        })
                     err_msg = json.dumps(f"Xəta: {str(e)}")
                     self.eval_js(f"window.updateDownloadProgress(0, 'error', {err_msg})")
             finally:
@@ -894,15 +1092,17 @@ class Bridge:
                 self.eval_js("window.showFfmpegModal()")
                 return
             try:
-                # 1. Ask save folder
-                dialog_res = self._window.create_file_dialog(dialog_type=webview.FOLDER_DIALOG)
-                if not dialog_res:
-                    self.eval_js("window.resetPlaylistDownloadState()")
-                    return
-                save_dir = dialog_res[0]
+                # 1. Use configured default download directory
+                save_dir = self.get_download_dir()
+                os.makedirs(save_dir, exist_ok=True)
                 
                 ffmpeg_location = self.get_ffmpeg_path()
                 total_tracks = len(tracks)
+                if telemetry:
+                    telemetry.record_breadcrumb("playlist", f"Batch download started: {total_tracks} tracks", {
+                        "is_audio": is_audio,
+                        "ext": ext
+                    })
                 
                 # Define hook factory with detailed real-time track and playlist progress
                 def make_hook(bridge_ref, current_idx, track_title):
@@ -1004,6 +1204,8 @@ class Bridge:
                             self.eval_js(f"window.onPlaylistTrackFinished({idx}, 'cancelled', {json.dumps(title)})")
                             break
                         print(f"Error downloading track {title}: {err}")
+                        if telemetry:
+                            telemetry.capture_error(e, {"step": "playlist_track", "track_index": idx, "is_audio": is_audio, "ext": ext})
                         self.eval_js(f"window.onPlaylistTrackFinished({idx}, 'error', {json.dumps(title)})")
                         # Keep going for other tracks
                         
@@ -1013,6 +1215,8 @@ class Bridge:
                     self.eval_js(f"window.updatePlaylistStatus('Hamısı tamamlandı! ({total_tracks}/{total_tracks})')")
                     
             except Exception as e:
+                if telemetry and "DOWNLOAD_CANCELLED" not in str(e):
+                    telemetry.capture_error(e, {"step": "playlist_batch_overall"})
                 self.eval_js(f"window.updatePlaylistStatus('Xəta baş verdi: {str(e)}')")
             finally:
                 self.eval_js("window.resetPlaylistDownloadState()")
@@ -1204,5 +1408,26 @@ class Bridge:
                 self._window.evaluate_js(script)
             except:
                 pass
+
+    def report_client_error(self, message, source="", lineno=0, colno=0):
+        """Allows JavaScript UI to report unhandled exceptions to telemetry."""
+        if telemetry:
+            telemetry.record_breadcrumb("client_js", f"UI error: {message}", {
+                "source": source,
+                "lineno": lineno,
+                "colno": colno
+            }, level="error")
+            telemetry.capture_error(Exception(f"UI Error: {message} ({source}:{lineno}:{colno})"))
+
+    def get_telemetry_info(self):
+        """Returns device ID and MAC address information for debugging/status."""
+        if telemetry:
+            return {
+                "device_id": telemetry.get_or_create_device_id(),
+                "mac_address": telemetry.get_mac_address(),
+                "version": CURRENT_VERSION
+            }
+        return {"device_id": "unknown", "mac_address": "unknown", "version": CURRENT_VERSION}
+
 
 

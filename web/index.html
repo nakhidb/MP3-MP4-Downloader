@@ -41,15 +41,11 @@
 
     <!-- Bottom Sidebar Section -->
     <div class="space-y-4">
-      <!-- Author signature -->
-      <div class="text-[10px] text-[#4B5563] font-bold tracking-wider px-2">by nakhid</div>
-
-      <!-- GoPro Button -->
-      <button onclick="openGoProModal()"
-        class="w-full py-3 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-md shadow-[#9D4EDD]/10">
-        <span id="btn-gopro-sidebar">Premium Al</span>
-        <i class="fa-solid fa-bolt"></i>
-      </button>
+      <!-- Author signature & Version -->
+      <div class="flex items-center justify-between text-[10px] text-[#4B5563] font-bold tracking-wider px-2">
+        <span>by nakhid</span>
+        <span id="footer-version" class="text-[#6B7280]">v1.8</span>
+      </div>
     </div>
   </div>
 
@@ -58,18 +54,26 @@
     <!-- Header Bar -->
     <header class="h-16 flex items-center justify-between px-6 border-b border-[#242424] bg-[#121212] shrink-0">
       <div>
-        <h2 id="header-subtitle" class="text-xs text-[#A0A0A0] tracking-wide font-semibold">MÜASİR SƏS VƏ VİDEO YÜKLƏYİCİ</h2>
+        <h2 id="header-subtitle" class="text-xs text-[#A0A0A0] tracking-wide font-medium">Müasir səs və video yükləyici</h2>
       </div>
 
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Download Folder Selector -->
+        <button onclick="changeDownloadFolder()" id="btn-download-folder"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#181818] hover:bg-[#222222] border border-[#262626] hover:border-[#9D4EDD]/50 text-[#A0A0A0] hover:text-white transition-all duration-200 text-xs font-medium cursor-pointer max-w-[260px] group shadow-sm"
+          title="Yükləmə qovluğunu dəyiş">
+          <i class="fa-solid fa-folder-open text-[#9D4EDD] text-sm group-hover:scale-110 transition-transform"></i>
+          <span id="lbl-download-folder" class="truncate font-semibold text-white/90">Yükləmə qovluğu</span>
+        </button>
+
         <!-- Language Select Switcher -->
-        <div class="bg-[#181818] p-0.5 rounded-lg flex border border-[#242424]">
+        <div class="bg-[#181818] p-1 rounded-xl flex items-center gap-1 border border-[#262626] shadow-sm">
           <button onclick="changeLanguage('AZ')" id="lang-az"
-            class="px-3 py-1 text-[10px] font-bold rounded-md bg-[#9D4EDD] text-white transition-all">AZ</button>
+            class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[#9D4EDD] text-white shadow-md shadow-[#9D4EDD]/30 transition-all duration-300 ease-out cursor-pointer scale-105">AZ</button>
           <button onclick="changeLanguage('EN')" id="lang-en"
-            class="px-3 py-1 text-[10px] font-bold rounded-md text-[#A0A0A0] hover:text-white transition-all">EN</button>
+            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-[#A0A0A0] hover:text-white hover:bg-white/5 transition-all duration-300 ease-out cursor-pointer scale-100">EN</button>
           <button onclick="changeLanguage('РУС')" id="lang-rus"
-            class="px-3 py-1 text-[10px] font-bold rounded-md text-[#A0A0A0] hover:text-white transition-all">РУС</button>
+            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-[#A0A0A0] hover:text-white hover:bg-white/5 transition-all duration-300 ease-out cursor-pointer scale-100">РУС</button>
         </div>
       </div>
     </header>
@@ -85,29 +89,25 @@
           <!-- URL & Search Entry Row with Spotify-style dropdown -->
           <div class="space-y-2 relative" id="url-entry-container">
             <div class="flex items-center justify-between">
-              <label id="lbl-url" class="text-xs font-bold text-[#9D4EDD] tracking-wide uppercase">Link yapışdırın və ya mahnı axtarın:</label>
+              <label id="lbl-url" class="text-xs font-bold text-[#9D4EDD] tracking-wide">Linki aşağıya yapışdırın:</label>
               
-              <!-- Search Platform Switcher (YouTube & Spotify ONLY) -->
-              <div class="flex items-center gap-1.5 bg-[#202020] p-1 rounded-xl border border-[#2c2c2c]">
-                <button type="button" id="btn-tab-youtube" onclick="setSearchPlatform('youtube')"
-                  class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#FF0000] bg-[#FF0000]/15 border border-[#FF0000]/40 transition-all cursor-pointer">
-                  <i class="fa-brands fa-youtube text-sm"></i>
+              <!-- Platform Gradient Badge (Informational) -->
+              <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-gradient-to-r from-[#FF0000]/15 via-[#9D4EDD]/15 to-[#1DB954]/15 border border-[#333333] shadow-sm select-none">
+                <span class="flex items-center gap-1.5 text-[11px] font-bold text-[#FF4D4D]">
+                  <i class="fa-brands fa-youtube text-sm text-[#FF0000]"></i>
                   <span>YouTube</span>
-                </button>
-                <button type="button" id="btn-tab-spotify" onclick="setSearchPlatform('spotify')"
-                  class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#A0A0A0] hover:text-[#1DB954] hover:bg-[#1DB954]/10 border border-transparent transition-all cursor-pointer">
-                  <i class="fa-brands fa-spotify text-sm"></i>
+                </span>
+                <span class="text-[10px] text-[#666666] font-bold">/</span>
+                <span class="flex items-center gap-1.5 text-[11px] font-bold text-[#1DB954]">
+                  <i class="fa-brands fa-spotify text-sm text-[#1DB954]"></i>
                   <span>Spotify</span>
-                </button>
+                </span>
               </div>
             </div>
 
             <!-- Input Bar -->
             <div
-              class="flex items-center bg-[#242424] rounded-xl border border-[#282828] p-1.5 focus-within:border-[#9D4EDD] transition-all relative">
-              <span id="input-platform-icon" class="text-[#FF0000] px-3 transition-colors">
-                <i class="fa-brands fa-youtube text-base"></i>
-              </span>
+              class="flex items-center bg-[#242424] rounded-xl border border-[#282828] p-1.5 pl-4 focus-within:border-[#9D4EDD] transition-all relative">
               <input type="text" id="url-input" placeholder="YouTube və ya Spotify linki yapışdırın..."
                 autocomplete="off"
                 oninput="handleUrlInputChange(this.value)"
@@ -157,7 +157,7 @@
             <div class="flex items-end gap-8 flex-wrap">
               <!-- Media Type Segmented Picker -->
               <div class="space-y-2">
-                <label id="lbl-media" class="text-[10px] font-bold text-[#A0A0A0] tracking-widest uppercase">Media Type:</label>
+                <label id="lbl-media" class="text-[10px] font-bold text-[#A0A0A0] tracking-widest">Media Type:</label>
                 <div class="flex gap-2">
                   <button onclick="setMediaType('audio')" id="media-audio"
                     class="px-4 py-2 rounded-full text-xs font-bold bg-[#9D4EDD] text-white border border-[#9D4EDD] transition-all">
@@ -176,7 +176,7 @@
               <!-- Format pills -->
               <div class="space-y-2">
                 <label id="lbl-format"
-                  class="text-[10px] font-bold text-[#A0A0A0] tracking-widest uppercase">Format:</label>
+                  class="text-[10px] font-bold text-[#A0A0A0] tracking-widest">Format:</label>
                 <div id="ext-pills" class="flex gap-2 flex-wrap">
                   <!-- Populated dynamically by JS -->
                 </div>
@@ -185,7 +185,7 @@
               <!-- Quality pills -->
               <div class="space-y-2">
                 <label id="lbl-quality"
-                  class="text-[10px] font-bold text-[#A0A0A0] tracking-widest uppercase">Quality:</label>
+                  class="text-[10px] font-bold text-[#A0A0A0] tracking-widest">Quality:</label>
                 <div id="quality-pills" class="flex gap-2 flex-wrap">
                   <!-- Populated dynamically by JS -->
                 </div>
@@ -213,7 +213,7 @@
           <button id="btn-download" onclick="startSingleDownload()"
             class="w-full py-4 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-2.5 tracking-wide transition-all active:scale-98 shadow-lg shadow-[#9D4EDD]/15">
             <i class="fa-solid fa-cloud-arrow-down text-base"></i>
-            <span id="lbl-download-btn">YÜKLƏ</span>
+            <span id="lbl-download-btn">Yüklə</span>
           </button>
         </div>
 
@@ -248,25 +248,28 @@
         </div>
 
         <!-- Spotify 100+ Limit Info & Part Selector Banner -->
-        <div id="spotify-limit-banner" class="hidden bg-[#181818] rounded-2xl border border-[#1DB954]/30 p-4 shrink-0 transition-all shadow-lg">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-xl bg-[#1DB954]/15 text-[#1DB954] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-brands fa-spotify text-base"></i>
+        <div id="spotify-limit-banner" class="hidden bg-[#181818] rounded-2xl border border-[#1DB954]/25 p-3.5 shrink-0 transition-all shadow-lg flex flex-col gap-3">
+          <div class="flex items-center justify-between gap-3 border-b border-[#242424] pb-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-7 h-7 rounded-lg bg-[#1DB954]/15 text-[#1DB954] flex items-center justify-center shrink-0">
+                <i class="fa-brands fa-spotify text-sm"></i>
               </div>
-              <div>
-                <h4 class="text-xs font-black text-white flex items-center gap-2">
-                  <span id="spotify-limit-title">Spotify Pleylist Hissələri (100 Mahnı Limiti)</span>
-                  <span id="spotify-total-badge" class="px-2 py-0.5 rounded-full bg-[#1DB954]/20 text-[#1DB954] text-[10px] font-extrabold border border-[#1DB954]/30"></span>
-                </h4>
-                <p id="spotify-limit-desc" class="text-[11px] text-[#A0A0A0] mt-0.5 leading-relaxed">
-                  Spotify tətbiqlərə bir dəfədə maksimum 100 mahnı çəkməyə icazə verir. Bir neçə parta bölünmüş hissələrdən yükləyə bilərsiniz.
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-xs font-black text-white truncate" id="spotify-limit-title">Spotify Pleylist Hissələri (100 Mahnı Limiti)</h4>
+                  <span id="spotify-total-badge" class="px-2 py-0.5 rounded-full bg-[#1DB954]/20 text-[#1DB954] text-[10px] font-extrabold border border-[#1DB954]/30 shrink-0"></span>
+                </div>
+                <p id="spotify-limit-desc" class="text-[11px] text-[#A0A0A0] truncate">
+                  Spotify tətbiqlərə bir dəfədə maksimum 100 mahnı çəkməyə icazə verir. İstədiyiniz hissəni seçib yükləyə bilərsiniz.
                 </p>
               </div>
             </div>
-            <!-- Part selection pills container -->
-            <div id="playlist-part-container" class="flex items-center gap-2 flex-wrap shrink-0"></div>
+            <div class="text-[11px] text-[#71717A] font-medium shrink-0 hidden sm:block">
+              <span id="spotify-parts-count-info"></span>
+            </div>
           </div>
+          <!-- Compact scrollable Part selection container -->
+          <div id="playlist-part-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 max-h-40 overflow-y-auto pr-1.5 py-1"></div>
         </div>
 
         <!-- Playlist Tracks list card -->
@@ -367,12 +370,6 @@
 
     </div>
 
-    <!-- App Version Footer -->
-    <footer
-      class="h-8 flex items-center justify-between px-6 border-t border-[#242424] bg-[#121212] text-[10px] text-[#A0A0A0] shrink-0">
-      <div></div>
-      <div id="footer-version">Versiya: v1.0.5</div>
-    </footer>
   </div>
 
   <!-- ── MODAL: FFmpeg Downloader Modal ── -->
@@ -401,15 +398,15 @@
       <!-- Download Stats Grid -->
       <div class="grid grid-cols-3 gap-2.5 pt-1">
         <div class="bg-[#242424] rounded-xl p-3 border border-[#2a2a2a] text-center">
-          <div id="ffmpeg-stat-lbl-size" class="text-[10px] font-bold text-[#A0A0A0] uppercase tracking-wider">Həcm</div>
+          <div id="ffmpeg-stat-lbl-size" class="text-[10px] font-bold text-[#A0A0A0] tracking-wider">Həcm</div>
           <div id="ffmpeg-modal-size" class="text-xs font-extrabold text-white mt-1">0 / 0 MB</div>
         </div>
         <div class="bg-[#242424] rounded-xl p-3 border border-[#2a2a2a] text-center">
-          <div id="ffmpeg-stat-lbl-speed" class="text-[10px] font-bold text-[#A0A0A0] uppercase tracking-wider">Sürət</div>
+          <div id="ffmpeg-stat-lbl-speed" class="text-[10px] font-bold text-[#A0A0A0] tracking-wider">Sürət</div>
           <div id="ffmpeg-modal-speed" class="text-xs font-extrabold text-[#06B6D4] mt-1">0.0 MB/s</div>
         </div>
         <div class="bg-[#242424] rounded-xl p-3 border border-[#2a2a2a] text-center">
-          <div id="ffmpeg-stat-lbl-eta" class="text-[10px] font-bold text-[#A0A0A0] uppercase tracking-wider">Qalan Vaxt</div>
+          <div id="ffmpeg-stat-lbl-eta" class="text-[10px] font-bold text-[#A0A0A0] tracking-wider">Qalan Vaxt</div>
           <div id="ffmpeg-modal-eta" class="text-xs font-extrabold text-[#10B981] mt-1">--</div>
         </div>
       </div>
@@ -528,7 +525,7 @@
         <i class="fa-solid fa-gift animate-bounce"></i>
       </div>
       <div class="flex-1 min-w-0">
-        <h4 id="update-toast-title" class="text-xs font-black text-[#9D4EDD] uppercase tracking-wide">Yeni yenilənmə var! 🚀</h4>
+        <h4 id="update-toast-title" class="text-xs font-black text-[#9D4EDD] tracking-wide">Yeni yenilənmə var! 🚀</h4>
         <p id="update-toast-desc" class="text-[11px] text-[#A0A0A0] mt-1 leading-normal">Yeni versiya (v1.0.2) artıq hazırdır. Yenilikləri əldə etmək üçün yükləyin.</p>
       </div>
     </div>
