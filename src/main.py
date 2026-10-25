@@ -16,7 +16,7 @@ if os.path.exists(_src_dir) and _src_dir not in sys.path:
 
 try:
     import telemetry
-    telemetry.init_telemetry("v1.8")
+    telemetry.init_telemetry("v1.9")
 except Exception as _te:
     print(f"Telemetry notice: {_te}")
 

@@ -615,7 +615,7 @@ function changeLanguage(lang) {
   }
 
   // Footer
-  safeSetText("footer-version", "v1.8");
+  safeSetText("footer-version", "v1.9");
 
   // History empty state
   const historyList = document.getElementById("history-list");

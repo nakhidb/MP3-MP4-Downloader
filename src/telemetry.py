@@ -114,7 +114,7 @@ def _configure_local_logging() -> None:
         pass
 
 
-def init_telemetry(app_version: str = "v1.8") -> bool:
+def init_telemetry(app_version: str = "v1.9") -> bool:
     """
     Initializes Sentry telemetry and error tracking.
     Returns False when the DSN is missing or the user opted out.

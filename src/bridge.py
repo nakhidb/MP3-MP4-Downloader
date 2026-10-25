@@ -28,7 +28,7 @@ except ImportError:
     except ImportError:
         telemetry = None
 
-CURRENT_VERSION = "v1.8"
+CURRENT_VERSION = "v1.9"
 GITHUB_REPO = "nakhidb/MP3-MP4-Downloader"
 
 _WINDOWS_RESERVED_NAMES = {
