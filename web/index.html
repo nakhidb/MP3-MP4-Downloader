@@ -5,15 +5,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TrackDrop</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Tailwind CSS (bundled locally so the UI works fully offline) -->
+  <link rel="stylesheet" href="css/tailwind.css">
+  <!-- FontAwesome Icons (bundled locally) -->
+  <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+  <!-- Local Inter font faces -->
+  <link rel="stylesheet" href="css/fonts.css">
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="bg-[#121212] text-white flex h-screen select-none select-none">
+<body class="bg-[#121212] text-white flex h-screen select-none">
 
   <!-- Sidebar Container -->
   <div class="w-[240px] bg-[#181818] flex flex-col justify-between p-5 border-r border-[#242424] h-full shrink-0">
@@ -58,6 +61,13 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <!-- FFmpeg status / installer -->
+        <button type="button" id="ffmpeg-badge"
+          class="text-[10px] bg-[#242424] text-[#A0A0A0] px-2.5 py-1 rounded-full font-bold cursor-default border border-[#2e2e2e] transition-all shrink-0"
+          title="FFmpeg">
+          <i class="fa-solid fa-circle-notch fa-spin mr-1"></i> FFmpeg
+        </button>
+
         <!-- Download Folder Selector -->
         <button onclick="changeDownloadFolder()" id="btn-download-folder"
           class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#181818] hover:bg-[#222222] border border-[#262626] hover:border-[#9D4EDD]/50 text-[#A0A0A0] hover:text-white transition-all duration-200 text-xs font-medium cursor-pointer max-w-[260px] group shadow-sm"
@@ -88,17 +98,19 @@
           <!-- URL entry row with search dropdown -->
           <!-- URL & Search Entry Row with Spotify-style dropdown -->
           <div class="space-y-2 relative" id="url-entry-container">
-            <div class="flex items-center justify-between">
-              <label id="lbl-url" class="text-xs font-bold text-[#9D4EDD] tracking-wide">Linki aşağıya yapışdırın:</label>
-              
-              <!-- Platform Gradient Badge (Informational) -->
-              <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-gradient-to-r from-[#FF0000]/15 via-[#9D4EDD]/15 to-[#1DB954]/15 border border-[#333333] shadow-sm select-none">
-                <span class="flex items-center gap-1.5 text-[11px] font-bold text-[#FF4D4D]">
-                  <i class="fa-brands fa-youtube text-sm text-[#FF0000]"></i>
+            <div class="flex items-center justify-between gap-3">
+              <label id="lbl-url" class="url-label-gradient text-xs font-bold tracking-wide">Linki aşağıya yapışdırın:</label>
+
+              <!-- Both platforms are accepted by the same field; this is a label, not a switch. -->
+              <div class="url-platform-gradient flex shrink-0 items-center gap-2 rounded-xl px-3 py-1.5 select-none"
+                aria-label="YouTube və Spotify linkləri dəstəklənir"
+                title="YouTube və Spotify linkləri dəstəklənir">
+                <span class="flex items-center gap-1 text-[11px] font-bold text-white/90">
+                  <i class="fa-brands fa-youtube text-sm text-[#FF5C5C]"></i>
                   <span>YouTube</span>
                 </span>
-                <span class="text-[10px] text-[#666666] font-bold">/</span>
-                <span class="flex items-center gap-1.5 text-[11px] font-bold text-[#1DB954]">
+                <span class="text-[10px] font-bold text-[#C77DFF]/60">+</span>
+                <span class="flex items-center gap-1 text-[11px] font-bold text-white/90">
                   <i class="fa-brands fa-spotify text-sm text-[#1DB954]"></i>
                   <span>Spotify</span>
                 </span>
@@ -107,8 +119,8 @@
 
             <!-- Input Bar -->
             <div
-              class="flex items-center bg-[#242424] rounded-xl border border-[#282828] p-1.5 pl-4 focus-within:border-[#9D4EDD] transition-all relative">
-              <input type="text" id="url-input" placeholder="YouTube və ya Spotify linki yapışdırın..."
+              class="url-input-shell flex items-center rounded-xl p-1.5 pl-4 transition-all relative">
+              <input type="text" id="url-input" placeholder="Linki yapışdırın..."
                 autocomplete="off"
                 oninput="handleUrlInputChange(this.value)"
                 onfocus="handleUrlInputFocus(this.value)"
@@ -122,7 +134,7 @@
                 class="px-4 py-2 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all mr-1.5 shrink-0 cursor-pointer">
                 <span id="btn-paste">Yapışdır</span>
               </button>
-              <button onclick="clearUrlInput()" class="px-3 py-2 text-[#A0A0A0] hover:text-white transition-all cursor-pointer">
+              <button onclick="clearUrlInput()" aria-label="Linki təmizlə" class="px-3 py-2 text-[#A0A0A0] hover:text-white transition-all cursor-pointer">
                 <i class="fa-solid fa-xmark text-sm"></i>
               </button>
             </div>
@@ -136,9 +148,10 @@
                 </div>
                 <div class="flex items-center gap-3">
                   <span id="search-selected-indicator" class="text-[#1DB954] text-xs font-semibold hidden">
-                    <i class="fa-solid fa-check"></i> <span id="search-selected-num">0</span> seçildi
+                    <i class="fa-solid fa-check"></i> <span id="search-selected-num">0</span>
+                    <span id="search-selected-word">seçildi</span>
                   </span>
-                  <button type="button" onclick="closeSearchDropdown()" class="text-[#A0A0A0] hover:text-white text-sm cursor-pointer">
+                  <button type="button" onclick="closeSearchDropdown()" aria-label="Axtarışı bağla" class="text-[#A0A0A0] hover:text-white text-sm cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
@@ -149,6 +162,21 @@
                 <!-- Populated dynamically with Spotify-style rows -->
               </div>
             </div>
+          </div>
+
+          <!-- Selected search tracks summary -->
+          <div id="selected-songs-bar"
+            class="hidden items-center justify-between gap-3 bg-[#9D4EDD]/10 border border-[#9D4EDD]/30 rounded-xl px-3.5 py-2.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-[#9D4EDD]/20 text-[#C77DFF] flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-list-check text-xs"></i>
+              </span>
+              <span id="selected-songs-label" class="text-xs font-semibold text-white truncate" aria-live="polite">0 mahnı seçildi</span>
+            </div>
+            <button type="button" onclick="clearSelectedSongs()" id="btn-clear-selected"
+              class="px-3 py-1.5 rounded-lg bg-[#242424] hover:bg-[#2e2e2e] text-[#A0A0A0] hover:text-white text-[11px] font-bold border border-[#2e2e2e] transition-all shrink-0">
+              <i class="fa-solid fa-xmark mr-1"></i><span id="lbl-clear-selected">Təmizlə</span>
+            </button>
           </div>
 
           <!-- Downloader Config Row -->
@@ -211,7 +239,7 @@
 
           <!-- Download Action Button -->
           <button id="btn-download" onclick="startSingleDownload()"
-            class="w-full py-4 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-2.5 tracking-wide transition-all active:scale-98 shadow-lg shadow-[#9D4EDD]/15">
+            class="w-full py-4 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-2.5 tracking-wide transition-all active:scale-[0.98] shadow-lg shadow-[#9D4EDD]/15">
             <i class="fa-solid fa-cloud-arrow-down text-base"></i>
             <span id="lbl-download-btn">Yüklə</span>
           </button>
@@ -317,7 +345,7 @@
                 <i class="fa-solid fa-magnifying-glass text-[#A0A0A0] text-xs shrink-0"></i>
                 <input type="text" id="playlist-search" oninput="filterTracks()" placeholder="Mahnı və ya sənətçi axtar..."
                   class="bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-xs text-white flex-1 placeholder-[#6B7280]">
-                <button onclick="clearPlaylistSearch()" id="btn-clear-pl-search" class="hidden text-[#6B7280] hover:text-white text-xs transition-colors">
+                <button onclick="clearPlaylistSearch()" id="btn-clear-pl-search" aria-label="Axtarışı təmizlə" class="hidden text-[#6B7280] hover:text-white text-xs transition-colors">
                   <i class="fa-solid fa-xmark"></i>
                 </button>
               </div>
@@ -375,7 +403,7 @@
   <!-- ── MODAL: FFmpeg Downloader Modal ── -->
   <div id="ffmpeg-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
     <div id="ffmpeg-modal-card" class="bg-[#181818] border border-[#2e2e2e] rounded-2xl w-[440px] p-6 space-y-5 shadow-2xl relative transform scale-95 transition-transform duration-300">
-      <button onclick="closeFfmpegModal()" class="absolute top-4 right-4 text-[#A0A0A0] hover:text-white transition-all">
+      <button onclick="closeFfmpegModal()" aria-label="Bağla" class="absolute top-4 right-4 text-[#A0A0A0] hover:text-white transition-all">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
 
@@ -421,7 +449,7 @@
   <div id="spotify-modal"
     class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-[#181818] border border-[#242424] rounded-2xl w-[420px] p-6 space-y-5 shadow-2xl relative">
-      <button onclick="closeSpotifyModal()"
+      <button onclick="closeSpotifyModal()" aria-label="Bağla"
         class="absolute top-4 right-4 text-[#A0A0A0] hover:text-white transition-all">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
@@ -439,38 +467,45 @@
       <!-- Spotify API / Client Credentials Inputs -->
       <div class="space-y-3 pt-1">
         <div>
-          <label class="block text-[11px] font-bold text-[#A0A0A0] mb-1">Spotify Client ID / Token</label>
+          <label for="spotify-api-key" id="spotify-key-label" class="block text-[11px] font-bold text-[#A0A0A0] mb-1">Spotify Client ID / Token</label>
           <div class="flex gap-2">
-            <input type="text" id="spotify-api-key" placeholder="Client ID və ya API Token daxil edin..."
+            <input type="text" id="spotify-api-key" placeholder="Client ID və ya API Token daxil edin..." autocomplete="off"
               class="w-full bg-[#242424] text-white text-xs placeholder-[#6B7280] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 outline-none focus:border-[#1DB954] transition-all">
-            <button onclick="pasteSpotifyKey()" class="px-3 bg-[#242424] hover:bg-[#2e2e2e] text-[#1DB954] text-xs font-bold rounded-xl border border-[#2e2e2e] transition-all shrink-0">
+            <button type="button" onclick="pasteSpotifyKey()" aria-label="Yapışdır" class="px-3 bg-[#242424] hover:bg-[#2e2e2e] text-[#1DB954] text-xs font-bold rounded-xl border border-[#2e2e2e] transition-all shrink-0">
               <i class="fa-solid fa-paste"></i>
             </button>
           </div>
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold text-[#A0A0A0] mb-1">Client Secret (İstəyə bağlı)</label>
-          <input type="password" id="spotify-client-secret" placeholder="Client Secret (varsa)..."
+          <label for="spotify-client-secret" id="spotify-secret-label" class="block text-[11px] font-bold text-[#A0A0A0] mb-1">Client Secret</label>
+          <input type="password" id="spotify-client-secret" placeholder="Client Secret..." autocomplete="off"
             class="w-full bg-[#242424] text-white text-xs placeholder-[#6B7280] border border-[#2e2e2e] rounded-xl px-3.5 py-2.5 outline-none focus:border-[#1DB954] transition-all">
         </div>
 
         <div class="bg-[#242424] rounded-xl p-3 text-xs text-[#A0A0A0] leading-relaxed border border-[#2e2e2e]">
-          <p class="text-white font-bold mb-1"><i class="fa-solid fa-circle-info text-[#1DB954] mr-1.5"></i> Məlumat</p>
-          <p class="text-[11px]">Spotify Developer portalından (developer.spotify.com) pulsuz tətbiq yaradıb Client ID & Secret daxil edərək 100+ mahnılı pleylistləri tam yükləyə bilərsiniz.</p>
+          <p id="spotify-info-title" class="text-white font-bold mb-1"><i class="fa-solid fa-circle-info text-[#1DB954] mr-1.5"></i> Məlumat</p>
+          <div id="spotify-inst-list" class="text-[11px] space-y-1">
+            <p>Spotify Developer portalından pulsuz tətbiq yaradıb Client ID & Secret daxil edərək 100+ mahnılı pleylistləri tam yükləyə bilərsiniz.</p>
+          </div>
         </div>
       </div>
 
       <!-- Action buttons -->
-      <div class="flex gap-2.5 pt-1">
-        <button onclick="openSpotifyDeveloperSite()"
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="openSpotifyDeveloperSite()"
           class="flex-1 py-2.5 bg-[#242424] hover:bg-[#2e2e2e] text-white text-xs font-bold rounded-xl transition-all border border-[#2e2e2e] flex items-center justify-center gap-1.5">
           <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-[#1DB954]"></i>
-          <span>Developer Saytı</span>
+          <span id="btn-spotify-site-text">Developer Saytı</span>
         </button>
-        <button onclick="saveSpotifyConfig()"
+        <button type="button" onclick="testSpotifyConfig()" id="btn-spotify-test"
+          class="flex-1 py-2.5 bg-[#242424] hover:bg-[#2e2e2e] text-white text-xs font-bold rounded-xl transition-all border border-[#2e2e2e] flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-vial text-[11px] text-[#9D4EDD]"></i>
+          <span id="btn-spotify-test-label">Test Et</span>
+        </button>
+        <button type="button" onclick="saveSpotifyConfig()"
           class="flex-1 py-2.5 bg-[#1DB954] hover:bg-[#1AA34A] text-black text-xs font-extrabold rounded-xl transition-all shadow-md shadow-[#1DB954]/20">
-          <span>Yadda Saxla</span>
+          <span id="btn-spotify-save-label">Yadda Saxla</span>
         </button>
       </div>
     </div>
@@ -480,7 +515,7 @@
   <div id="gopro-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div
       class="bg-[#181818] border border-[#242424] rounded-2xl w-[380px] p-6 space-y-6 shadow-2xl relative text-center">
-      <button onclick="closeGoProModal()" class="absolute top-4 right-4 text-[#A0A0A0] hover:text-white transition-all">
+      <button onclick="closeGoProModal()" aria-label="Bağla" class="absolute top-4 right-4 text-[#A0A0A0] hover:text-white transition-all">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
 
@@ -512,7 +547,7 @@
       </div>
 
       <button onclick="activatePremium(event)" id="btn-gopro-purchase"
-        class="w-full py-3.5 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-extrabold text-xs rounded-xl transition-all shadow-md active:scale-98">
+        class="w-full py-3.5 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-extrabold text-xs rounded-xl transition-all shadow-md active:scale-[0.98]">
         Aktiv Et!
       </button>
     </div>
@@ -536,7 +571,7 @@
   </div>
 
   <!-- ── TOAST: General In-App Notification Toast ── -->
-  <div id="app-toast" class="fixed top-6 right-6 z-50 bg-[#181818]/95 backdrop-blur-md border border-[#2e2e2e] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none">
+  <div id="app-toast" role="status" aria-live="polite" class="fixed top-6 right-6 z-50 bg-[#181818]/95 backdrop-blur-md border border-[#2e2e2e] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none">
     <div id="app-toast-icon" class="w-8 h-8 rounded-lg bg-[#10B981]/20 flex items-center justify-center text-[#10B981] text-sm shrink-0">
       <i class="fa-solid fa-circle-check"></i>
     </div>

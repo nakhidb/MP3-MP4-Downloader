@@ -59,5 +59,18 @@ python src/build_exe.py
 
 ---
 
+## 🔒 Privacy
+
+TrackDrop stores settings, logs, and an anonymous random device UUID under `%LOCALAPPDATA%\TrackDrop`. Logs rotate automatically and are capped at roughly 1 MB × 4 files.
+
+Remote crash reporting uses Sentry and is **opt-out**:
+
+- Set the environment variable `TRACKDROP_TELEMETRY=0` before launching, **or**
+- create an empty file named `telemetry_opt_out` in `%LOCALAPPDATA%\TrackDrop\`.
+
+Telemetry contains the random UUID, app version, and OS version. It does **not** send your MAC address, hostname, username, download folder, search history, or downloaded file contents. No telemetry is sent while offline or when the DSN is unset.
+
+---
+
 ## 📄 License
 This project is open-source under the [MIT License](LICENSE).

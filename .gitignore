@@ -17,6 +17,10 @@ build/
 dist/
 *.spec
 
+# Frontend build tooling
+node_modules/
+npm-debug.log*
+
 # Local user configs, caches, device identifiers & logs
 spotify_config.json
 device_id.txt

@@ -3,20 +3,25 @@ import sys
 import uuid
 import platform
 import logging
+import threading
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional, Dict, Any
 
 # ==============================================================================
 # Sentry DSN Configuration
 # ==============================================================================
-# Sentry.io DSN açarınızı bura yapışdıra bilərsiniz və ya Windows Environment
-# dəyişəni kimi 'SENTRY_DSN' təyin edə bilərsiniz.
-# DSN açıq mənbədə (open-source) gizli açar deyil, client-side qorunmalıdır.
+# Sentry.io DSN-inizi bura yerləşdirə və ya 'SENTRY_DSN' mühit dəyişəni ilə
+# təyin edə bilərsiniz. DSN açıq mənbədə gizli açar sayılmır.
 DEFAULT_SENTRY_DSN = "https://57392982513484cd21e7f0badfd55acb@o4512307230474240.ingest.us.sentry.io/4512307274317824"
 SENTRY_DSN = os.environ.get("SENTRY_DSN", DEFAULT_SENTRY_DSN)
 
+# Telemetry is opt-out. Set TRACKDROP_TELEMETRY=0 (or create the file
+# <config_dir>/telemetry_opt_out) to disable remote error reporting completely.
+_TELEMETRY_DISABLED_VALUES = {"0", "false", "off", "no", "disabled"}
 
 _telemetry_initialized = False
+_telemetry_enabled = True
 _device_info: Dict[str, str] = {}
 
 
@@ -31,22 +36,27 @@ def get_config_dir() -> Path:
     return config_dir
 
 
-def get_mac_address() -> str:
-    """Returns the primary network interface MAC address."""
+def is_telemetry_enabled() -> bool:
+    """Remote telemetry can be disabled by env var or a local opt-out file."""
+    global _telemetry_enabled
+    if os.environ.get("TRACKDROP_TELEMETRY", "").strip().lower() in _TELEMETRY_DISABLED_VALUES:
+        _telemetry_enabled = False
+        return False
+    if os.environ.get("TRACKDROP_TELEMETRY_OPT_OUT", "").strip().lower() in _TELEMETRY_DISABLED_VALUES:
+        _telemetry_enabled = False
+        return False
     try:
-        mac_num = uuid.getnode()
-        mac_hex = f"{mac_num:012x}"
-        mac_str = ":".join(mac_hex[i : i + 2] for i in range(0, 12, 2)).upper()
-        return mac_str
+        if (get_config_dir() / "telemetry_opt_out").exists():
+            _telemetry_enabled = False
+            return False
     except Exception:
-        return "UNKNOWN_MAC"
+        pass
+    _telemetry_enabled = True
+    return True
 
 
 def get_or_create_device_id() -> str:
-    """
-    Returns a persistent anonymous device identifier.
-    Combines MAC address with a locally generated persistent UUID.
-    """
+    """Return an anonymous, locally generated persistent UUID."""
     global _device_info
     if _device_info.get("device_id"):
         return _device_info["device_id"]
@@ -68,46 +78,65 @@ def get_or_create_device_id() -> str:
         except Exception:
             pass
 
-    mac = get_mac_address()
-    device_id = f"MAC_{mac.replace(':', '')}_{device_uuid[:8]}"
-
     _device_info = {
-        "device_id": device_id,
-        "mac_address": mac,
+        "device_id": device_uuid,
         "device_uuid": device_uuid,
         "os": f"{platform.system()} {platform.release()}",
         "architecture": platform.machine(),
     }
-    return device_id
+    return device_uuid
+
+
+def _configure_local_logging() -> None:
+    """Attach a bounded, rotating log handler once."""
+    try:
+        log_file = get_config_dir() / "trackdrop.log"
+        root = logging.getLogger()
+        already_configured = any(
+            isinstance(handler, RotatingFileHandler)
+            and getattr(handler, "baseFilename", "") == str(log_file)
+            for handler in root.handlers
+        )
+        if already_configured:
+            return
+        handler = RotatingFileHandler(
+            str(log_file),
+            maxBytes=1_000_000,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+        root.addHandler(handler)
+        if root.level == logging.NOTSET:
+            root.setLevel(logging.INFO)
+    except Exception:
+        # A broken log file must never prevent the application from starting.
+        pass
 
 
 def init_telemetry(app_version: str = "v1.8") -> bool:
     """
     Initializes Sentry telemetry and error tracking.
-    If DSN is not set or placeholder, runs safely in local mode.
+    Returns False when the DSN is missing or the user opted out.
     """
-    global _telemetry_initialized
+    global _telemetry_initialized, _telemetry_enabled
     if _telemetry_initialized:
-        return True
+        return _telemetry_enabled
 
+    _telemetry_initialized = True
+    _configure_local_logging()
     device_id = get_or_create_device_id()
-    mac = _device_info.get("mac_address", "UNKNOWN")
 
-    # Local logger setup
-    log_file = get_config_dir() / "trackdrop.log"
-    logging.basicConfig(
-        filename=str(log_file),
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        encoding="utf-8",
-    )
-    logging.info(f"App started: Version={app_version}, DeviceID={device_id}, MAC={mac}")
+    logging.info("App started: Version=%s, DeviceID=%s", app_version, device_id)
 
-    # Check if Sentry DSN is configured
-    is_placeholder = "examplePublicKey" in SENTRY_DSN or not SENTRY_DSN.strip()
-    if is_placeholder:
-        logging.info("Sentry DSN is not configured yet. Running in offline telemetry mode.")
-        _telemetry_initialized = True
+    if not is_telemetry_enabled():
+        logging.info("Telemetry disabled by user preference. Running in local-only mode.")
+        return False
+
+    dsn = (SENTRY_DSN or "").strip()
+    if not dsn or "examplePublicKey" in dsn:
+        logging.info("Sentry DSN is not configured. Running in offline telemetry mode.")
+        _telemetry_enabled = False
         return False
 
     try:
@@ -115,13 +144,12 @@ def init_telemetry(app_version: str = "v1.8") -> bool:
         from sentry_sdk.integrations.logging import LoggingIntegration
 
         sentry_logging = LoggingIntegration(
-            level=logging.INFO,        # Capture info and above as breadcrumbs
-            event_level=logging.ERROR  # Send errors as events
+            level=logging.INFO,
+            event_level=logging.ERROR,
         )
 
-        mac_short = mac.replace(":", "")[-6:]
         sentry_sdk.init(
-            dsn=SENTRY_DSN,
+            dsn=dsn,
             release=f"trackdrop@{app_version}",
             environment="production",
             traces_sample_rate=0.05,
@@ -129,40 +157,60 @@ def init_telemetry(app_version: str = "v1.8") -> bool:
             integrations=[sentry_logging],
         )
 
-        sentry_sdk.set_user({
-            "id": device_id,
-            "mac_address": mac,
-            "username": f"Device-{mac_short}",
-        })
-
-        sentry_sdk.set_tag("mac_address", mac)
+        # Only a random local UUID is sent. No MAC address, hostname, username,
+        # IP-derived identity or file paths are attached intentionally.
+        sentry_sdk.set_user({"id": device_id})
         sentry_sdk.set_tag("app_version", app_version)
-        sentry_sdk.set_tag("os_platform", platform.platform())
+        sentry_sdk.set_tag("os_platform", platform.system())
+        sentry_sdk.set_tag("os_release", platform.release())
 
-        # Unhandled exception hook
+        default_excepthook = sys.excepthook
+        default_thread_excepthook = threading.excepthook
+
         def handle_unhandled_exception(exc_type, exc_value, exc_traceback):
             if issubclass(exc_type, KeyboardInterrupt):
-                sys.__excepthook__(exc_type, exc_value, exc_traceback)
+                default_excepthook(exc_type, exc_value, exc_traceback)
                 return
-            logging.critical("Unhandled exception:", exc_info=(exc_type, exc_value, exc_traceback))
-            sentry_sdk.capture_exception((exc_type, exc_value, exc_traceback))
-            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            logging.critical(
+                "Unhandled exception:",
+                exc_info=(exc_type, exc_value, exc_traceback),
+            )
+            try:
+                sentry_sdk.capture_exception(exc_value)
+            except Exception:
+                pass
+            default_excepthook(exc_type, exc_value, exc_traceback)
+
+        def handle_thread_exception(args):
+            if issubclass(args.exc_type, KeyboardInterrupt):
+                default_thread_excepthook(args)
+                return
+            logging.critical(
+                "Unhandled exception in thread %s:",
+                getattr(args.thread, "name", "unknown"),
+                exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+            )
+            try:
+                sentry_sdk.capture_exception(args.exc_value)
+            except Exception:
+                pass
+            default_thread_excepthook(args)
 
         sys.excepthook = handle_unhandled_exception
-        _telemetry_initialized = True
+        threading.excepthook = handle_thread_exception
+        _telemetry_enabled = True
         logging.info("Sentry telemetry initialized successfully.")
         return True
-    except Exception as e:
-        logging.warning(f"Failed to initialize Sentry: {e}")
-        _telemetry_initialized = True
+    except Exception as exc:
+        logging.warning("Failed to initialize Sentry: %s", exc)
+        _telemetry_enabled = False
         return False
 
 
 def record_breadcrumb(category: str, message: str, data: Optional[Dict[str, Any]] = None, level: str = "info") -> None:
-    """
-    Records an operational step (breadcrumb) without personal data.
-    E.g.: category='download', message='yt-dlp extract started', data={'format': 'mp3'}
-    """
+    """Record an operational step without personal data."""
+    if not _telemetry_enabled:
+        return
     try:
         import sentry_sdk
         sentry_sdk.add_breadcrumb(
@@ -173,20 +221,28 @@ def record_breadcrumb(category: str, message: str, data: Optional[Dict[str, Any]
         )
     except Exception:
         pass
-    logging.info(f"[{category}] {message}")
+    logging.info("[%s] %s", category, message)
 
 
-def capture_error(error: Exception, context: Optional[Dict[str, Any]] = None) -> None:
-    """
-    Sends caught error and context to Sentry and writes to local log.
-    """
-    try:
-        import sentry_sdk
-        with sentry_sdk.push_scope() as scope:
-            if context:
-                for k, v in context.items():
-                    scope.set_extra(k, v)
-            sentry_sdk.capture_exception(error)
-    except Exception:
-        pass
-    logging.error(f"Error captured: {error}", exc_info=True)
+def capture_error(error: BaseException, context: Optional[Dict[str, Any]] = None) -> None:
+    """Send a caught error and non-sensitive context to Sentry and the local log."""
+    if _telemetry_enabled:
+        try:
+            import sentry_sdk
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("handled", "true")
+                if context:
+                    for key, value in context.items():
+                        scope.set_extra(key, value)
+                sentry_sdk.capture_exception(error)
+        except Exception:
+            pass
+
+    if error.__traceback__ is not None:
+        logging.error(
+            "Error captured: %s",
+            error,
+            exc_info=(type(error), error, error.__traceback__),
+        )
+    else:
+        logging.error("Error captured: %s", error)

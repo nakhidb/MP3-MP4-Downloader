@@ -7,6 +7,16 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+function safeImageUrl(url) {
+  const value = String(url || "").trim();
+  return /^https?:\/\//i.test(value) ? value : "";
+}
+
+function getTrackKey(track) {
+  if (!track) return "";
+  return String(track.url || `${track.artist || ""}|${track.title || ""}`);
+}
+
 window.onerror = function(message, source, lineno, colno, error) {
   try {
     if (window.pywebview && window.pywebview.api && window.pywebview.api.report_client_error) {
@@ -55,6 +65,7 @@ const translations = {
     "spotify_inst_step1": "1. Yaşıl düyməyə basıb developer.spotify.com saytına daxil olun.",
     "spotify_inst_step2": "2. Create an App düyməsinə basıb yaranan açarı kopyalayın.",
     "spotify_inst_step3": "3. Açarı yuxarıdakı xanaya yapışdırıb yadda saxlayın.",
+    "spotify_info_title": "Məlumat",
     "btn_spotify_site": "Spotify-a Keç",
     "btn_spotify_cancel": "Ləğv Et",
     "btn_spotify_save": "Yadda Saxla",
@@ -70,7 +81,7 @@ const translations = {
     "btn_gopro_sidebar": "Premium Al",
     "status_premium_active": "Premium Aktivdir",
     "status_premium_btn_done": "Aktiv Edildi",
-    "placeholder_url": "Spotify və ya YouTube linkini bura yapışdırın...",
+    "placeholder_url": "Linki yapışdırın...",
     "placeholder_playlist_url": "Spotify və ya YouTube pleylist linkini bura yapışdırın...",
     "error_playlist_in_single": "Bu link pleylist yüklənilməsi üçündür. Zəhmət olmasa 'Pleylist Yükləyici' bölməsinə keçin.",
     "error_title": "Xəta",
@@ -103,12 +114,30 @@ const translations = {
     "pager_next": "Növbəti",
     "pager_info": "Səhifə {page} / {totalPages} · {start}–{end} / {total} mahnı",
     "all_completed": "Hamısı tamamlandı! ({count})",
+    "batch_finished": "Bitdi: {success} uğurlu, {failed} xəta",
     "wait_loading_part": "Zəhmət olmasa gözləyin, hazırda {part} yüklənir...",
     "wait_preparing_playlist": "Zəhmət olmasa gözləyin, pleylist məlumatları alınır və hissələrə bölünür...",
     "loading_part_notice": "Part {part} yüklənir, zəhmət olmasa gözləyin...",
     "btn_download_folder_title": "Yükləmə qovluğunu dəyiş",
     "folder_changed_toast": "Yükləmə qovluğu yeniləndi: ",
-    "folder_default_lbl": "Yükləmə qovluğu"
+    "folder_default_lbl": "Yükləmə qovluğu",
+    "selected_count": "{count} mahnı seçildi",
+    "song_word": "Mahnı",
+    "search_no_results": "\"{query}\" üçün nəticə tapılmadı",
+    "search_add_tooltip": "Əlavə et",
+    "search_selected_tooltip": "Seçildi",
+    "selected_word": "seçildi",
+    "toast_busy": "Başqa yükləmə davam edir. Zəhmət olmasa bitməsini gözləyin.",
+    "error_client_secret": "Client ID ilə birlikdə Client Secret də lazımdır.",
+    "btn_spotify_test": "Test Et",
+    "spotify_test_success": "Spotify bağlantısı uğurludur!",
+    "spotify_test_fail": "Spotify bağlantısı uğursuzdur. Açarları yoxlayın.",
+    "spotify_key_label": "Spotify Client ID / Token",
+    "spotify_secret_label": "Client Secret",
+    "ffmpeg_checking": "FFmpeg yoxlanılır...",
+    "playlist_parts_title": "Pleylist Hissələri",
+    "playlist_parts_desc": "Böyük pleylistlər 100 mahnılıq hissələrə bölünür. İstədiyiniz hissəni seçin.",
+    "playlist_part_word": "Hissə"
   },
   "EN": {
     "subtitle": "Modern Audio and Video Downloader",
@@ -146,6 +175,7 @@ const translations = {
     "spotify_inst_step1": "1. Click the green button to open developer.spotify.com.",
     "spotify_inst_step2": "2. Click Create an App and copy the generated key/token.",
     "spotify_inst_step3": "3. Paste the key in the field above and click Save.",
+    "spotify_info_title": "Info",
     "btn_spotify_site": "Go to Spotify",
     "btn_spotify_cancel": "Cancel",
     "btn_spotify_save": "Save Key",
@@ -161,7 +191,7 @@ const translations = {
     "btn_gopro_sidebar": "Buy Premium",
     "status_premium_active": "Premium Active",
     "status_premium_btn_done": "Activated",
-    "placeholder_url": "Paste Spotify or YouTube link here...",
+    "placeholder_url": "Paste link here...",
     "placeholder_playlist_url": "Paste Spotify or YouTube playlist link here...",
     "error_playlist_in_single": "This link is for downloading playlists. Please switch to the 'Playlist Downloader' tab.",
     "error_title": "Error",
@@ -194,12 +224,30 @@ const translations = {
     "pager_next": "Next",
     "pager_info": "Page {page} / {totalPages} · {start}–{end} / {total} tracks",
     "all_completed": "All completed! ({count})",
+    "batch_finished": "Finished: {success} successful, {failed} failed",
     "wait_loading_part": "Please wait, loading {part} in progress...",
     "wait_preparing_playlist": "Please wait, playlist info is being processed...",
     "loading_part_notice": "Loading Part {part}, please wait...",
     "btn_download_folder_title": "Change download folder",
     "folder_changed_toast": "Download folder updated: ",
-    "folder_default_lbl": "Download Folder"
+    "folder_default_lbl": "Download Folder",
+    "selected_count": "{count} tracks selected",
+    "song_word": "Song",
+    "search_no_results": "No results for \"{query}\"",
+    "search_add_tooltip": "Add",
+    "search_selected_tooltip": "Selected",
+    "selected_word": "selected",
+    "toast_busy": "Another download is in progress. Please wait for it to finish.",
+    "error_client_secret": "Client Secret is required together with the Client ID.",
+    "btn_spotify_test": "Test",
+    "spotify_test_success": "Spotify connection is valid!",
+    "spotify_test_fail": "Spotify connection failed. Check your credentials.",
+    "spotify_key_label": "Spotify Client ID / Token",
+    "spotify_secret_label": "Client Secret",
+    "ffmpeg_checking": "Checking FFmpeg...",
+    "playlist_parts_title": "Playlist Parts",
+    "playlist_parts_desc": "Large playlists are split into 100-track parts. Choose the part you want.",
+    "playlist_part_word": "Part"
   },
   "РУС": {
     "subtitle": "Современный загрузчик аудио и видео",
@@ -237,6 +285,7 @@ const translations = {
     "spotify_inst_step1": "1. Нажмите зеленую кнопку и перейдите на developer.spotify.com.",
     "spotify_inst_step2": "2. Нажмите кнопку 'Create an App' и скопируйте созданный ключ.",
     "spotify_inst_step3": "3. Вставьте ключ в поле выше и нажмите 'Сохранить'.",
+    "spotify_info_title": "Информация",
     "btn_spotify_site": "Перейти в Spotify",
     "btn_spotify_cancel": "Отмена",
     "btn_spotify_save": "Сохранить ключ",
@@ -252,7 +301,7 @@ const translations = {
     "btn_gopro_sidebar": "Купить Premium",
     "status_premium_active": "Premium Активен",
     "status_premium_btn_done": "Активировано",
-    "placeholder_url": "Вставьте ссылку на Spotify или YouTube...",
+    "placeholder_url": "Вставьте ссылку...",
     "placeholder_playlist_url": "Вставьте ссылку на плейлист Spotify или YouTube...",
     "error_playlist_in_single": "Эта ссылка предназначена для загрузки плейлистов. Пожалуйста, перейдите в раздел 'Плейлист загрузчик'.",
     "error_title": "Ошибка",
@@ -285,12 +334,30 @@ const translations = {
     "pager_next": "Вперед",
     "pager_info": "Страница {page} / {totalPages} · {start}–{end} / {total} треков",
     "all_completed": "Все завершено! ({count})",
+    "batch_finished": "Завершено: {success} успешно, {failed} с ошибкой",
     "wait_loading_part": "Пожалуйста, подождите, идет загрузка {part}...",
     "wait_preparing_playlist": "Пожалуйста, подождите, информация о плейлисте обрабатывается...",
     "loading_part_notice": "Загружается Part {part}, пожалуйста, подождите...",
     "btn_download_folder_title": "Изменить папку сохранения",
     "folder_changed_toast": "Папка сохранения обновлена: ",
-    "folder_default_lbl": "Папка загрузки"
+    "folder_default_lbl": "Папка загрузки",
+    "selected_count": "Выбрано треков: {count}",
+    "song_word": "Трек",
+    "search_no_results": "По запросу \"{query}\" ничего не найдено",
+    "search_add_tooltip": "Добавить",
+    "search_selected_tooltip": "Выбрано",
+    "selected_word": "выбрано",
+    "toast_busy": "Другая загрузка уже выполняется. Пожалуйста, дождитесь её завершения.",
+    "error_client_secret": "Вместе с Client ID требуется Client Secret.",
+    "btn_spotify_test": "Проверить",
+    "spotify_test_success": "Подключение к Spotify работает!",
+    "spotify_test_fail": "Не удалось подключиться к Spotify. Проверьте ключи.",
+    "spotify_key_label": "Spotify Client ID / Token",
+    "spotify_secret_label": "Client Secret",
+    "ffmpeg_checking": "Проверка FFmpeg...",
+    "playlist_parts_title": "Части плейлиста",
+    "playlist_parts_desc": "Большие плейлисты делятся на части по 100 треков. Выберите нужную часть.",
+    "playlist_part_word": "Часть"
   }
 };
 
@@ -298,8 +365,14 @@ let currentLanguage = "AZ";
 let activeTab = "single";
 let mediaType = "audio";
 let isDownloading = false;
+let isPlaylistDownloading = false;
+let pendingSearchBatchClear = false;
+let toastTimer = null;
 let fetchedTracks = [];
 let currentPlaylistName = "";
+let selectedTrackMap = new Map();
+let searchSelectedMap = new Map();
+let trackStatusByKey = {};
 
 const mediaConfig = {
   audio: {
@@ -376,6 +449,49 @@ document.addEventListener("DOMContentLoaded", () => {
   setMediaType("audio");
   changeLanguage("AZ");
 
+  // Keyboard shortcuts: Enter starts the focused action, Escape closes overlays.
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeSearchDropdown();
+      ["spotify-modal", "ffmpeg-modal", "gopro-modal"].forEach((id) => {
+        const modal = document.getElementById(id);
+        if (modal && !modal.classList.contains("hidden")) {
+          if (id === "spotify-modal") closeSpotifyModal();
+          else if (id === "ffmpeg-modal") closeFfmpegModal();
+          else closeGoProModal();
+        }
+      });
+      return;
+    }
+    if (event.key === "Enter" && event.target) {
+      if (event.target.id === "url-input") {
+        event.preventDefault();
+        startSingleDownload();
+      } else if (event.target.id === "playlist-url-input") {
+        event.preventDefault();
+        fetchPlaylist(0, 100);
+      }
+    }
+  });
+
+  // Close the live-search dropdown when clicking outside its container.
+  document.addEventListener("click", (event) => {
+    const dropdown = document.getElementById("search-dropdown");
+    const container = document.getElementById("url-entry-container");
+    if (!dropdown || dropdown.classList.contains("hidden")) return;
+    if (container && !container.contains(event.target)) closeSearchDropdown();
+  });
+
+  // Clicking a modal backdrop closes it.
+  document.querySelectorAll("#spotify-modal, #ffmpeg-modal, #gopro-modal").forEach((modal) => {
+    modal.addEventListener("click", (event) => {
+      if (event.target !== modal) return;
+      if (modal.id === "spotify-modal") closeSpotifyModal();
+      else if (modal.id === "ffmpeg-modal") closeFfmpegModal();
+      else closeGoProModal();
+    });
+  });
+
   // Expose API check to python loaded hook
   setTimeout(() => {
     checkFfmpeg();
@@ -439,31 +555,29 @@ function changeLanguage(lang) {
 
   // Input placeholders
   const urlInput = document.getElementById("url-input");
-  if (urlInput) {
-    urlInput.placeholder = currentLanguage === "AZ"
-      ? "YouTube və ya Spotify linki yapışdırın..."
-      : (currentLanguage === "РУС" ? "Вставьте ссылку на YouTube или Spotify..." : "Paste YouTube or Spotify link here...");
-  }
+  if (urlInput) urlInput.placeholder = t.placeholder_url || "Linki yapışdırın...";
   const playlistUrlInput = document.getElementById("playlist-url-input");
   if (playlistUrlInput) playlistUrlInput.placeholder = t.placeholder_playlist_url;
   const plSearchInput = document.getElementById("playlist-search");
   if (plSearchInput) plSearchInput.placeholder = t.search_placeholder || "Mahnı və ya sənətçi axtar...";
 
   // Modals & Toolbar Buttons
-  safeSetText("btn-manage-api-key", t.btn_manage_api_key || "API Key");
   safeSetText("spotify-modal-title", t.spotify_modal_title);
   safeSetText("spotify-modal-desc", t.spotify_modal_desc);
-  safeSetText("spotify-inst-title", t.spotify_inst_title);
   safeSetText("btn-spotify-site-text", t.btn_spotify_site || "Spotify-a Keç");
-  safeSetText("btn-spotify-cancel", t.btn_spotify_cancel);
-  safeSetText("btn-spotify-save", t.btn_spotify_save);
+  safeSetText("btn-spotify-save-label", t.btn_spotify_save);
+  safeSetText("btn-spotify-test-label", t.btn_spotify_test || "Test Et");
+  safeSetText("spotify-key-label", t.spotify_key_label || "Spotify Client ID / Token");
+  safeSetText("spotify-secret-label", t.spotify_secret_label || "Client Secret");
+  safeSetText("spotify-info-title", t.spotify_info_title || "Məlumat");
+  safeSetText("lbl-clear-selected", t.btn_clear_basket || "Təmizlə");
 
   const instList = document.getElementById("spotify-inst-list");
   if (instList) {
     instList.innerHTML = `
-      <p>${t.spotify_inst_step1}</p>
-      <p>${t.spotify_inst_step2}</p>
-      <p>${t.spotify_inst_step3}</p>
+      <p>${escapeHtml(t.spotify_inst_step1)}</p>
+      <p>${escapeHtml(t.spotify_inst_step2)}</p>
+      <p>${escapeHtml(t.spotify_inst_step3)}</p>
     `;
   }
 
@@ -473,8 +587,8 @@ function changeLanguage(lang) {
   safeSetText("ffmpeg-stat-lbl-eta", t.ffmpeg_stat_eta);
   safeSetText("ffmpeg-modal-note", t.ffmpeg_modal_note);
   safeSetText("lbl-cancel-playlist", t.btn_cancel_playlist);
-  safeSetText("spotify-limit-title", t.spotify_limit_title);
-  safeSetText("spotify-limit-desc", t.spotify_limit_desc);
+  safeSetText("spotify-limit-title", t.playlist_parts_title || t.spotify_limit_title);
+  safeSetText("spotify-limit-desc", t.playlist_parts_desc || t.spotify_limit_desc);
 
   safeSetText("gopro-title", t.gopro_title);
   safeSetText("gopro-desc", t.gopro_desc);
@@ -483,11 +597,6 @@ function changeLanguage(lang) {
   safeSetText("gopro-feat-3", t.gopro_feat_3);
   safeSetText("gopro-feat-4", t.gopro_feat_4);
   safeSetText("btn-gopro-purchase", isPremiumActive ? t.status_premium_btn_done : t.btn_gopro_purchase);
-
-  const sidebarBtnSpan = document.querySelector("#btn-gopro-sidebar");
-  if (sidebarBtnSpan) {
-    sidebarBtnSpan.textContent = isPremiumActive ? t.status_premium_active : t.btn_gopro_sidebar;
-  }
 
   const goproDetail = document.getElementById("gopro-desc-detail");
   if (goproDetail) {
@@ -532,32 +641,35 @@ function changeLanguage(lang) {
   // Update download button labels
   updateDownloadButtonLabel();
   updateDownloadSelectedButtonText();
+  updateSelectedIndicator();
+  checkFfmpeg();
 }
 
 function updatePlaylistStatusMsg() {
   const plStatus = document.getElementById("playlist-status-msg");
   if (!plStatus || !currentPlaylistName) return;
+  const t = translations[currentLanguage] || translations["AZ"];
   if (currentPlaylistTotal > 100) {
     const partNum = Math.floor(currentPlaylistOffset / currentPlaylistLimit) + 1;
     const startNum = currentPlaylistOffset + 1;
     const endNum = Math.min(currentPlaylistOffset + (fetchedTracks ? fetchedTracks.length : 0), currentPlaylistTotal);
-    const partWord = currentLanguage === "AZ" ? "Part" : (currentLanguage === "EN" ? "Part" : "Часть");
-    plStatus.textContent = `${currentPlaylistName} — ${partWord} ${partNum} (${startNum}-${endNum} / ${currentPlaylistTotal})`;
+    plStatus.textContent = `${currentPlaylistName} — ${t.playlist_part_word || "Part"} ${partNum} (${startNum}-${endNum} / ${currentPlaylistTotal})`;
   } else if (currentPlaylistTotal > 0) {
-    const trackWord = currentLanguage === "AZ" ? "mahnı" : (currentLanguage === "EN" ? "tracks" : "треков");
-    plStatus.textContent = `${currentPlaylistName} (${currentPlaylistTotal} ${trackWord})`;
+    plStatus.textContent = `${currentPlaylistName} (${currentPlaylistTotal} ${t.songs_unit || "mahnı"})`;
   }
 }
 
 function updateDownloadButtonLabel() {
   const btn = document.getElementById("btn-download");
+  if (!btn) return;
   const t = translations[currentLanguage];
   if (isDownloading) {
     btn.innerHTML = `<i class="fa-solid fa-xmark text-sm"></i> <span>${t.btn_cancel}</span>`;
-    btn.className = "w-full py-4 bg-[#7F1D1D] hover:bg-[#991B1B] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-2.5 tracking-wide transition-all active:scale-98 shadow-lg shadow-[#7F1D1D]/15";
+    btn.className = "w-full py-4 bg-[#7F1D1D] hover:bg-[#991B1B] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-2.5 tracking-wide transition-all active:scale-[0.98] shadow-lg shadow-[#7F1D1D]/15";
   } else {
-    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down text-base"></i> <span>${t.lbl_download_btn}</span>`;
-    btn.className = "w-full py-4 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-2.5 tracking-wide transition-all active:scale-98 shadow-lg shadow-[#9D4EDD]/15";
+    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down text-base"></i> <span id="lbl-download-btn">${t.lbl_download_btn}</span>`;
+    btn.className = "w-full py-4 bg-[#9D4EDD] hover:bg-[#8A2BE2] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-2.5 tracking-wide transition-all active:scale-[0.98] shadow-lg shadow-[#9D4EDD]/15";
+    updateSingleDownloadButton();
   }
 }
 
@@ -677,6 +789,8 @@ function checkFfmpeg() {
         badge.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> ${t.ffmpeg_badge_missing}`;
         badge.onclick = installFfmpeg;
       }
+    }).catch(err => {
+      console.warn("FFmpeg check failed:", err);
     });
   }
 }
@@ -689,7 +803,7 @@ function installFfmpeg() {
 }
 
 // FFmpeg Modal Animation and Logic
-window.showFfmpegModal = (existingData) => {
+function showFfmpegModal(existingData) {
   const modal = document.getElementById("ffmpeg-modal");
   const card = document.getElementById("ffmpeg-modal-card");
   if (!modal || !card) return;
@@ -706,9 +820,9 @@ window.showFfmpegModal = (existingData) => {
   if (existingData) {
     window.updateFfmpegModalProgress(existingData);
   }
-};
+}
 
-window.closeFfmpegModal = () => {
+function closeFfmpegModal() {
   const modal = document.getElementById("ffmpeg-modal");
   const card = document.getElementById("ffmpeg-modal-card");
   if (!modal || !card) return;
@@ -721,7 +835,7 @@ window.closeFfmpegModal = () => {
   setTimeout(() => {
     modal.classList.add("hidden");
   }, 250);
-};
+}
 
 window.updateFfmpegModalProgress = (data) => {
   const t = translations[currentLanguage];
@@ -729,7 +843,6 @@ window.updateFfmpegModalProgress = (data) => {
   const status = data.status || "downloading";
   const dlMb = data.downloaded_mb || 0;
   const totMb = data.total_mb || 0;
-  const remMb = data.remaining_mb || 0;
   const speedStr = data.speed_str || "0.0 MB/s";
   const etaSec = data.eta_sec || 0;
 
@@ -813,28 +926,35 @@ window.onFfmpegError = (errorMsg) => {
 
 // Clipboard integration
 function pasteFromClipboard() {
-  if (window.pywebview && window.pywebview.api) {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.get_clipboard_text) {
     window.pywebview.api.get_clipboard_text().then(text => {
-      if (text) {
-        document.getElementById("url-input").value = text;
+      if (!text) return;
+      const input = document.getElementById("url-input");
+      if (input) {
+        input.value = text;
+        handleUrlInputChange(text);
+        input.focus();
       }
-    });
+    }).catch(err => console.warn("Clipboard error:", err));
   }
 }
 
 function clearUrlInput() {
   const input = document.getElementById("url-input");
   if (input) input.value = "";
-  hideSearchPanel();
+  closeSearchDropdown();
 }
 
 function pastePlaylistUrl() {
-  if (window.pywebview && window.pywebview.api) {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.get_clipboard_text) {
     window.pywebview.api.get_clipboard_text().then(text => {
-      if (text) {
-        document.getElementById("playlist-url-input").value = text;
+      if (!text) return;
+      const input = document.getElementById("playlist-url-input");
+      if (input) {
+        input.value = text;
+        input.focus();
       }
-    });
+    }).catch(err => console.warn("Clipboard error:", err));
   }
 }
 
@@ -846,36 +966,55 @@ function startSingleDownload() {
     }
     return;
   }
+  if (isPlaylistDownloading) {
+    showInAppToast((translations[currentLanguage].toast_busy || "Başqa yükləmə davam edir."), "info");
+    return;
+  }
 
-  // If user selected songs from Spotify/YouTube live search via (+) checkmarks
-  if (persistentSelectedSongs && persistentSelectedSongs.length > 0) {
+  // If the user selected songs from live search via (+) checkmarks
+  if (searchSelectedMap.size > 0) {
     downloadSelectedSearchResults();
     return;
   }
 
-  const url = document.getElementById("url-input").value.trim();
+  const input = document.getElementById("url-input");
+  const url = input ? input.value.trim() : "";
   if (!url) {
-    alert(translations[currentLanguage].error_title + ": " + (currentLanguage === "AZ" ? "Link və ya axtarış sözü daxil edin!" : "Please enter a URL or search track!"));
+    showInAppToast(
+      translations[currentLanguage].error_title + ": " +
+      (currentLanguage === "AZ" ? "Link və ya axtarış sözü daxil edin!" :
+        currentLanguage === "РУС" ? "Введите ссылку или поисковый запрос!" : "Please enter a URL or search query!"),
+      "error"
+    );
     return;
   }
 
-  if (window.pywebview && window.pywebview.api) {
-    window.pywebview.api.check_ffmpeg().then(hasFfmpeg => {
-      if (!hasFfmpeg) {
-        installFfmpeg();
-        return;
-      }
-
-      isDownloading = true;
-      updateDownloadButtonLabel();
-
-      const ext = selectedExt;
-      const quality = selectedQuality;
-
-      document.getElementById("progress-box").classList.remove("hidden");
-      window.pywebview.api.download_single(url, mediaType, quality, ext);
-    });
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.download_single)) {
+    showInAppToast("Python bridge is not ready. Please restart the app.", "error");
+    return;
   }
+
+  window.pywebview.api.check_ffmpeg().then(hasFfmpeg => {
+    if (!hasFfmpeg) {
+      installFfmpeg();
+      return;
+    }
+
+    isDownloading = true;
+    updateDownloadButtonLabel();
+
+    const ext = selectedExt;
+    const quality = selectedQuality;
+
+    const progressBox = document.getElementById("progress-box");
+    if (progressBox) progressBox.classList.remove("hidden");
+    window.pywebview.api.download_single(url, mediaType, quality, ext);
+  }).catch(err => {
+    console.error("FFmpeg check failed:", err);
+    isDownloading = false;
+    updateDownloadButtonLabel();
+    showInAppToast("FFmpeg check failed: " + err, "error");
+  });
 }
 
 window.updateDownloadProgress = (pct, status, details) => {
@@ -883,17 +1022,20 @@ window.updateDownloadProgress = (pct, status, details) => {
   const pctLbl = document.getElementById("progress-pct");
   const statusLbl = document.getElementById("progress-status");
   const detailsLbl = document.getElementById("progress-details");
-  const t = translations[currentLanguage];
+  const t = translations[currentLanguage] || translations["AZ"];
 
-  fill.style.width = `${pct}%`;
-  pctLbl.textContent = `${pct}%`;
+  if (fill) fill.style.width = `${pct}%`;
+  if (pctLbl) pctLbl.textContent = `${pct}%`;
 
-  if (status === "error" && details === "ERROR_PLAYLIST_IN_SINGLE") {
-    detailsLbl.textContent = t.error_playlist_in_single;
-  } else {
-    detailsLbl.textContent = details;
+  if (detailsLbl) {
+    if (status === "error" && details === "ERROR_PLAYLIST_IN_SINGLE") {
+      detailsLbl.textContent = t.error_playlist_in_single;
+    } else {
+      detailsLbl.textContent = details;
+    }
   }
 
+  if (!statusLbl) return;
   if (status === "extracting") {
     statusLbl.textContent = t.status_extracting;
   } else if (status === "downloading") {
@@ -902,12 +1044,14 @@ window.updateDownloadProgress = (pct, status, details) => {
     statusLbl.textContent = t.status_converting;
   } else if (status === "success") {
     statusLbl.textContent = t.status_success;
-    document.getElementById("progress-box").classList.add("hidden");
+    const box = document.getElementById("progress-box");
+    if (box) box.classList.add("hidden");
   } else if (status === "error") {
     statusLbl.textContent = t.status_error;
   } else if (status === "cancelled") {
     statusLbl.textContent = t.status_cancelled;
-    document.getElementById("progress-box").classList.add("hidden");
+    const box = document.getElementById("progress-box");
+    if (box) box.classList.add("hidden");
   }
 };
 
@@ -919,22 +1063,37 @@ window.resetDownloadButton = () => {
 // History log
 window.addHistoryItem = (filename) => {
   const list = document.getElementById("history-list");
+  if (!list) return;
   const empty = document.getElementById("history-empty");
-  if (empty) {
-    empty.remove();
-  }
+  if (empty) empty.remove();
 
   const date = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const entry = document.createElement("div");
   entry.className = "flex items-center justify-between bg-[#242424] rounded-xl border border-[#282828] p-3 text-xs font-semibold hover:border-[#9D4EDD] transition-all";
-  entry.innerHTML = `
-    <div class="flex items-center gap-2 truncate">
-      <span class="text-[#9D4EDD]"><i class="fa-solid fa-circle-check"></i></span>
-      <span class="text-white truncate">${filename}</span>
-    </div>
-    <span class="text-[#A0A0A0] text-[10px] shrink-0">${date}</span>
-  `;
+
+  const left = document.createElement("div");
+  left.className = "flex items-center gap-2 min-w-0";
+  const icon = document.createElement("span");
+  icon.className = "text-[#9D4EDD] shrink-0";
+  icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+  const name = document.createElement("span");
+  name.className = "text-white truncate";
+  name.textContent = String(filename || "");
+  name.title = String(filename || "");
+  left.appendChild(icon);
+  left.appendChild(name);
+
+  const time = document.createElement("span");
+  time.className = "text-[#A0A0A0] text-[10px] shrink-0 ml-3";
+  time.textContent = date;
+
+  entry.appendChild(left);
+  entry.appendChild(time);
   list.insertBefore(entry, list.firstChild);
+
+  while (list.children.length > 50) {
+    list.removeChild(list.lastElementChild);
+  }
 };
 
 // Playlist Downloader Actions
@@ -949,6 +1108,11 @@ let currentLoadingPartNum = null;
 function fetchPlaylist(offset = 0, limit = 100) {
   const targetPart = Math.floor(offset / limit) + 1;
 
+  if (isPlaylistDownloading) {
+    showInAppToast((translations[currentLanguage].toast_busy || "Başqa yükləmə davam edir."), "info");
+    return;
+  }
+
   if (isPlaylistLoading) {
     const activeMsg = currentLoadingPartNum ? `Part ${currentLoadingPartNum}` : "Part";
     const warnTemplate = translations[currentLanguage].wait_loading_part || "Zəhmət olmasa gözləyin, hazırda {part} yüklənir...";
@@ -959,8 +1123,22 @@ function fetchPlaylist(offset = 0, limit = 100) {
   const urlInput = document.getElementById("playlist-url-input");
   const url = (urlInput ? urlInput.value.trim() : "") || lastPlaylistUrl;
   if (!url) {
-    alert(translations[currentLanguage].error_title + ": " + (currentLanguage === "AZ" ? "Link boş ola bilməz!" : "URL is empty!"));
+    showInAppToast(
+      translations[currentLanguage].error_title + ": " +
+      (currentLanguage === "AZ" ? "Link boş ola bilməz!" :
+        currentLanguage === "РУС" ? "Ссылка не может быть пустой!" : "URL cannot be empty!"),
+      "error"
+    );
     return;
+  }
+
+  const urlChanged = url !== lastPlaylistUrl;
+  if (urlChanged) {
+    selectedTrackMap.clear();
+    selectedTrackIndices = new Set();
+    trackStatusByKey = {};
+    updateSelectedIndicator();
+    updateDownloadSelectedButtonText();
   }
   lastPlaylistUrl = url;
   currentPlaylistOffset = offset;
@@ -982,12 +1160,12 @@ function fetchPlaylist(offset = 0, limit = 100) {
     const noticeTemplate = translations[currentLanguage].loading_part_notice || "Part {part} yüklənir, zəhmət olmasa gözləyin...";
     loadingNotice = noticeTemplate.replace("{part}", targetPart);
   }
-  showInAppToast(loadingNotice, "success");
+  showInAppToast(loadingNotice, "info");
 
   const btn = document.getElementById("btn-fetch-playlist");
   if (btn) {
     btn.setAttribute("disabled", "true");
-    btn.textContent = currentLanguage === "AZ" ? "Yüklənir..." : "Fetching...";
+    btn.textContent = currentLanguage === "AZ" ? "Yüklənir..." : (currentLanguage === "РУС" ? "Загрузка..." : "Fetching...");
   }
 
   if (window.pywebview && window.pywebview.api) {
@@ -1000,18 +1178,23 @@ function fetchPlaylist(offset = 0, limit = 100) {
       }
 
       if (res.error) {
+        const t = translations[currentLanguage];
         if (res.error === "spotify_auth_required") {
           window.showSpotifyAuthModal();
         } else if (res.error === "spotify_token_invalid") {
-          showInAppToast(translations[currentLanguage].spotify_key_invalid_toast || "Spotify API açarı xətalıdır və ya vaxtı bitib!", "error");
+          showInAppToast(t.spotify_key_invalid_toast || "Spotify API açarı xətalıdır və ya vaxtı bitib!", "error");
           window.showSpotifyAuthModal();
         } else if (res.error === "single_track_in_playlist") {
-          const tabName = translations[currentLanguage].nav_single || "URL Yükləyici";
-          showInAppToast(currentLanguage === "AZ" 
-            ? `Bu tək mahnı linkidir! Tək mahnıları yükləmək üçün sol tərəfdəki '${tabName}' bölməsindən istifadə edin.` 
+          const tabName = t.nav_single || "URL Yükləyici";
+          showInAppToast(currentLanguage === "AZ"
+            ? `Bu tək mahnı linkidir! Tək mahnıları yükləmək üçün sol tərəfdəki '${tabName}' bölməsindən istifadə edin.`
             : (currentLanguage === "РУС" ? `Это ссылка на один трек! Используйте раздел '${tabName}'.` : `This is a single track link! Please use the '${tabName}' tab.`), "error");
+        } else if (res.error === "unsupported_playlist_url") {
+          showInAppToast(currentLanguage === "AZ"
+            ? "Yalnız YouTube və Spotify pleylist linkləri dəstəklənir."
+            : (currentLanguage === "РУС" ? "Поддерживаются только ссылки на плейлисты YouTube и Spotify." : "Only YouTube and Spotify playlist links are supported."), "error");
         } else {
-          showInAppToast("Error: " + res.error, "error");
+          showInAppToast((t.status_error || "Xəta") + ": " + res.error, "error");
         }
       } else {
         playlistPartCache[cacheKey] = res;
@@ -1024,11 +1207,16 @@ function fetchPlaylist(offset = 0, limit = 100) {
         btn.removeAttribute("disabled");
         btn.innerHTML = `<span id="lbl-fetch-btn">${translations[currentLanguage].lbl_fetch_btn}</span>`;
       }
-      showInAppToast("Error: " + err, "error");
+      showInAppToast((translations[currentLanguage].status_error || "Xəta") + ": " + err, "error");
     });
   } else {
     isPlaylistLoading = false;
     currentLoadingPartNum = null;
+    if (btn) {
+      btn.removeAttribute("disabled");
+      btn.innerHTML = `<span id="lbl-fetch-btn">${translations[currentLanguage].lbl_fetch_btn}</span>`;
+    }
+    showInAppToast("Python bridge is not ready. Please restart the app.", "error");
   }
 }
 
@@ -1043,6 +1231,7 @@ function renderPlaylistPartButtons(totalTracks, activeOffset, limit) {
   const badge = document.getElementById("spotify-total-badge");
   const countInfo = document.getElementById("spotify-parts-count-info");
   if (!banner || !container) return;
+  const t = translations[currentLanguage] || translations["AZ"];
 
   if (!totalTracks || totalTracks <= 100) {
     banner.classList.add("hidden");
@@ -1052,18 +1241,16 @@ function renderPlaylistPartButtons(totalTracks, activeOffset, limit) {
   currentPlaylistTotal = totalTracks;
   banner.classList.remove("hidden");
   if (badge) {
-    const trackWord = currentLanguage === "AZ" ? "mahnı" : (currentLanguage === "EN" ? "tracks" : "треков");
-    badge.textContent = `${totalTracks} ${trackWord}`;
+    badge.textContent = `${totalTracks} ${t.songs_unit || "mahnı"}`;
   }
 
   container.innerHTML = "";
   const totalParts = Math.ceil(totalTracks / limit);
   const currentPartIndex = Math.floor(activeOffset / limit) + 1;
+  const partWord = t.playlist_part_word || "Part";
 
   if (countInfo) {
-    countInfo.textContent = currentLanguage === "AZ"
-      ? `Hissə: ${currentPartIndex} / ${totalParts}`
-      : (currentLanguage === "EN" ? `Part: ${currentPartIndex} / ${totalParts}` : `Часть: ${currentPartIndex} / ${totalParts}`);
+    countInfo.textContent = `${partWord}: ${currentPartIndex} / ${totalParts}`;
   }
 
   for (let p = 0; p < totalParts; p++) {
@@ -1073,18 +1260,28 @@ function renderPlaylistPartButtons(totalTracks, activeOffset, limit) {
     const isActive = (partOffset === activeOffset);
 
     const btn = document.createElement("button");
+    btn.type = "button";
     btn.className = isActive
-      ? "flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-black bg-[#1DB954] text-black shadow-md shadow-[#1DB954]/25 transition-all truncate border border-[#1DB954] cursor-pointer"
-      : "flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-semibold bg-[#202020] hover:bg-[#282828] text-[#E5E7EB] hover:text-white border border-[#2F2F2F] hover:border-[#1DB954]/60 transition-all truncate cursor-pointer";
-    
-    btn.innerHTML = `
-      <span class="flex items-center gap-2 truncate">
-        <i class="fa-brands fa-spotify text-xs ${isActive ? 'text-black' : 'text-[#1DB954]'} shrink-0"></i>
-        <span class="font-extrabold tracking-wide truncate">Part ${p + 1}</span>
-      </span>
-      <span class="text-[10px] ${isActive ? 'text-black/85 font-black' : 'text-[#9CA3AF] font-medium'} ml-2 shrink-0">(${startNum}-${endNum})</span>
-    `;
-    btn.title = `Part ${p + 1} (${startNum} - ${endNum})`;
+      ? "flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-black bg-[#9D4EDD] text-white shadow-md shadow-[#9D4EDD]/25 transition-all truncate border border-[#9D4EDD] cursor-pointer"
+      : "flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-semibold bg-[#202020] hover:bg-[#282828] text-[#E5E7EB] hover:text-white border border-[#2F2F2F] hover:border-[#9D4EDD]/60 transition-all truncate cursor-pointer";
+
+    const label = document.createElement("span");
+    label.className = "flex items-center gap-2 truncate";
+    const icon = document.createElement("i");
+    icon.className = `fa-solid fa-layer-group text-xs ${isActive ? 'text-white' : 'text-[#9D4EDD]'} shrink-0`;
+    const text = document.createElement("span");
+    text.className = "font-extrabold tracking-wide truncate";
+    text.textContent = `${partWord} ${p + 1}`;
+    label.appendChild(icon);
+    label.appendChild(text);
+
+    const range = document.createElement("span");
+    range.className = `text-[10px] ${isActive ? 'text-white/85 font-black' : 'text-[#9CA3AF] font-medium'} ml-2 shrink-0`;
+    range.textContent = `(${startNum}-${endNum})`;
+
+    btn.appendChild(label);
+    btn.appendChild(range);
+    btn.title = `${partWord} ${p + 1} (${startNum} - ${endNum})`;
     btn.onclick = () => {
       fetchPlaylist(partOffset, limit);
     };
@@ -1093,15 +1290,19 @@ function renderPlaylistPartButtons(totalTracks, activeOffset, limit) {
 }
 
 function displayTracks(playlistName, tracks, resInfo = null) {
-  fetchedTracks = tracks;
+  fetchedTracks = Array.isArray(tracks) ? tracks : [];
   currentTrackPage = 0;
   trackStatusMap = {};
+  fetchedTracks.forEach((track, index) => {
+    const key = getTrackKey(track);
+    if (key && trackStatusByKey[key]) trackStatusMap[index] = trackStatusByKey[key];
+  });
   currentTrackFilter = 'all';
   initSelectedTracks();
   const results = document.getElementById("playlist-results");
   results.classList.remove("hidden");
 
-  const total = resInfo && resInfo.total_tracks ? resInfo.total_tracks : tracks.length;
+  const total = resInfo && resInfo.total_tracks ? resInfo.total_tracks : fetchedTracks.length;
   const offset = resInfo && resInfo.offset !== undefined ? resInfo.offset : 0;
   const limit = resInfo && resInfo.limit ? resInfo.limit : 100;
 
@@ -1111,6 +1312,7 @@ function displayTracks(playlistName, tracks, resInfo = null) {
   currentPlaylistLimit = limit;
 
   updatePlaylistStatusMsg();
+  updateSelectedIndicator();
 
   // Render part pagination if 100+ tracks
   renderPlaylistPartButtons(total, offset, limit);
@@ -1204,6 +1406,7 @@ function renderTrackPage() {
     empty.className = "text-xs text-[#A0A0A0] italic text-center py-8";
     empty.textContent = currentLanguage === "AZ" ? "Uyğun mahnı tapılmadı" : (currentLanguage === "EN" ? "No matching tracks found" : "Треки не найдены");
     container.appendChild(empty);
+    updateDownloadSelectedButtonText();
     return;
   }
 
@@ -1211,6 +1414,7 @@ function renderTrackPage() {
     const track = fetchedTracks[globalIdx];
     const status = trackStatusMap[globalIdx] || 'pending';
     const isSelected = selectedTrackIndices.has(globalIdx);
+    const t = translations[currentLanguage] || translations["AZ"];
 
     const row = document.createElement("div");
     row.id = `track-row-${globalIdx}`;
@@ -1219,31 +1423,36 @@ function renderTrackPage() {
 
     let statusIconHtml = `<span class="text-[#A0A0A0] text-[10px] w-5 text-center shrink-0">${globalIdx + 1}</span>`;
     if (status === 'downloaded') {
-      statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#10B981]" title="Yüklənib"><i class="fa-solid fa-circle-check text-xs"></i></span>`;
+      statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#10B981]" title="${escapeHtml(t.badge_downloaded)}"><i class="fa-solid fa-circle-check text-xs"></i></span>`;
     } else if (status === 'downloading') {
       statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#9D4EDD]"><i class="fa-solid fa-spinner fa-spin text-xs"></i></span>`;
     } else if (status === 'error') {
-      statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#EF4444]" title="Xəta"><i class="fa-solid fa-circle-xmark text-xs"></i></span>`;
+      statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#EF4444]" title="${escapeHtml(t.status_error)}"><i class="fa-solid fa-circle-xmark text-xs"></i></span>`;
     } else if (status === 'cancelled') {
-      statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#A0A0A0]"><i class="fa-solid fa-ban text-xs"></i></span>`;
+      statusIconHtml = `<span class="w-5 text-center shrink-0 text-[#A0A0A0]" title="${escapeHtml(t.status_cancelled)}"><i class="fa-solid fa-ban text-xs"></i></span>`;
     }
 
-    const downloadedBadgeText = translations[currentLanguage].badge_downloaded || "Yüklənib";
+    const downloadedBadgeText = t.badge_downloaded || "Yüklənib";
     const downloadedBadge = status === 'downloaded'
-      ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 shrink-0">${downloadedBadgeText}</span>`
+      ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 shrink-0">${escapeHtml(downloadedBadgeText)}</span>`
       : '';
+
+    const thumb = safeImageUrl(track.thumbnail);
+    const thumbHtml = thumb
+      ? `<img src="${escapeHtml(thumb)}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0" onerror="this.style.display='none'">`
+      : `<div class="w-8 h-8 rounded bg-[#181818] flex items-center justify-center shrink-0 text-[#9D4EDD] text-xs"><i class="fa-solid fa-music"></i></div>`;
 
     row.innerHTML = `
       <div class="flex items-center gap-3 flex-1 min-w-0">
         <input type="checkbox" id="track-cb-${globalIdx}" ${isSelected ? 'checked' : ''} onchange="onTrackCheckboxChange(${globalIdx}, this.checked)" class="track-checkbox accent-[#9D4EDD] h-4 w-4 rounded border-[#282828] text-[#9D4EDD] focus:ring-[#9D4EDD] cursor-pointer">
         <span id="track-status-${globalIdx}" class="flex items-center justify-center">${statusIconHtml}</span>
-        ${track.thumbnail ? `<img src="${track.thumbnail}" class="w-8 h-8 rounded object-cover shrink-0">` : `<div class="w-8 h-8 rounded bg-[#181818] flex items-center justify-center shrink-0 text-[#9D4EDD] text-xs"><i class="fa-solid fa-music"></i></div>`}
+        ${thumbHtml}
         <div class="truncate flex-1 min-w-0">
           <div class="text-white font-bold truncate flex items-center gap-2">
-            <span class="truncate">${track.title}</span>
+            <span class="truncate" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</span>
             ${downloadedBadge}
           </div>
-          <div class="text-[#A0A0A0] text-[10px] truncate">${track.artist}</div>
+          <div class="text-[#A0A0A0] text-[10px] truncate">${escapeHtml(track.artist)}</div>
         </div>
       </div>
       <span class="text-[#A0A0A0] text-[10px] shrink-0 ml-4">${formatDuration(track.duration)}</span>
@@ -1319,10 +1528,14 @@ function renderTrackPage() {
 }
 
 function onTrackCheckboxChange(globalIdx, isChecked) {
+  const track = fetchedTracks[globalIdx];
+  const key = getTrackKey(track);
   if (isChecked) {
     selectedTrackIndices.add(globalIdx);
+    if (key) selectedTrackMap.set(key, track);
   } else {
     selectedTrackIndices.delete(globalIdx);
+    if (key) selectedTrackMap.delete(key);
   }
   updateDownloadSelectedButtonText();
 }
@@ -1333,21 +1546,27 @@ function goTrackPage(page) {
   if (page < 0 || page >= totalPages) return;
   currentTrackPage = page;
   renderTrackPage();
-  document.getElementById("tracklist-container").scrollTop = 0;
+  const container = document.getElementById("tracklist-container");
+  if (container) container.scrollTop = 0;
 }
 
 function setPlaylistFormat(type) {
   playlistMediaType = type;
   const activeClass = "px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#9D4EDD] text-white border border-[#9D4EDD] transition-all";
   const inactiveClass = "px-3 py-1.5 rounded-full text-[11px] font-bold text-[#A0A0A0] border border-[#3A3A3A] hover:border-[#9D4EDD] hover:text-white transition-all";
-  document.getElementById("pf-audio").className = type === "audio" ? activeClass : inactiveClass;
-  document.getElementById("pf-video").className = type === "video" ? activeClass : inactiveClass;
+  const audioBtn = document.getElementById("pf-audio");
+  const videoBtn = document.getElementById("pf-video");
+  if (audioBtn) audioBtn.className = type === "audio" ? activeClass : inactiveClass;
+  if (videoBtn) videoBtn.className = type === "video" ? activeClass : inactiveClass;
   renderPlaylistQualityPills();
 }
 
 function renderPlaylistQualityPills() {
   const qualities = playlistQualityConfig[playlistMediaType];
-  playlistQuality = qualities[qualities.length - 1]; // default: highest
+  // Keep the user's choice when the same format is re-rendered (e.g. another part).
+  playlistQuality = qualities.includes(playlistQuality)
+    ? playlistQuality
+    : qualities[qualities.length - 1];
   const container = document.getElementById("playlist-quality-pills");
   if (!container) return;
   container.innerHTML = qualities.map(q => `
@@ -1368,80 +1587,114 @@ function selectPlaylistQuality(val) {
 }
 
 function formatDuration(sec) {
-  if (!sec) return "--:--";
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${s < 10 ? "0" + s : s}`;
+  const value = Number(sec);
+  if (!value || value <= 0) return "--:--";
+  const hours = Math.floor(value / 3600);
+  const minutes = Math.floor((value % 3600) / 60);
+  const seconds = Math.floor(value % 60);
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-// Global set of selected track indices (works across pages)
+// Local indices for the currently loaded part; the Map survives part changes.
 let selectedTrackIndices = new Set();
 
 function initSelectedTracks() {
   selectedTrackIndices = new Set();
-  const masterCb = document.getElementById("master-cb");
-  if (masterCb) masterCb.checked = false;
+  fetchedTracks.forEach((track, index) => {
+    if (selectedTrackMap.has(getTrackKey(track))) selectedTrackIndices.add(index);
+  });
+  updateDownloadSelectedButtonText();
 }
 
 function toggleSelectAllTracks(master) {
-  if (master.checked) {
-    selectedTrackIndices = new Set(fetchedTracks.map((_, i) => i));
-  } else {
-    selectedTrackIndices.clear();
-  }
-  // Sync visible checkboxes
+  const indices = getFilteredTrackIndices();
+  indices.forEach((index) => {
+    const track = fetchedTracks[index];
+    const key = getTrackKey(track);
+    if (master.checked) {
+      selectedTrackIndices.add(index);
+      if (key) selectedTrackMap.set(key, track);
+    } else {
+      selectedTrackIndices.delete(index);
+      if (key) selectedTrackMap.delete(key);
+    }
+  });
+  // Sync visible checkboxes only; hidden filtered-out rows are untouched.
   document.querySelectorAll(".track-checkbox").forEach(cb => {
-    cb.checked = master.checked;
+    const id = cb.id || "";
+    const idx = parseInt(id.replace("track-cb-", ""), 10);
+    if (!Number.isNaN(idx)) cb.checked = selectedTrackIndices.has(idx);
   });
   updateDownloadSelectedButtonText();
 }
 
 function updateDownloadSelectedButtonText() {
-  const count = selectedTrackIndices.size;
+  const count = selectedTrackMap.size;
+  const t = translations[currentLanguage] || translations["AZ"];
   const btn = document.getElementById("btn-download-playlist");
   if (btn) {
-    btn.textContent = `${translations[currentLanguage].lbl_download_selected} (${count})`;
+    btn.textContent = `${t.lbl_download_selected} (${count})`;
+    if (isPlaylistDownloading) btn.setAttribute("disabled", "true");
   }
   const masterCb = document.getElementById("master-cb");
   if (masterCb) {
-    masterCb.checked = fetchedTracks.length > 0 && selectedTrackIndices.size === fetchedTracks.length;
+    const visible = getFilteredTrackIndices();
+    masterCb.checked = visible.length > 0 && visible.every(i => selectedTrackIndices.has(i));
+    masterCb.indeterminate = visible.some(i => selectedTrackIndices.has(i)) && !masterCb.checked;
   }
 }
 
 function downloadSelectedTracks() {
-  // Sync visible checkboxes before reading
-  updateDownloadSelectedButtonText();
-  const tracksToDownload = [...selectedTrackIndices].sort((a,b) => a-b).map(i => fetchedTracks[i]);
-
-  if (tracksToDownload.length === 0) {
-    alert(currentLanguage === "AZ" ? "Heç bir mahnı seçilməyib." : "No tracks selected.");
+  if (isDownloading || isPlaylistDownloading) {
+    showInAppToast((translations[currentLanguage].toast_busy || "Başqa yükləmə davam edir."), "info");
     return;
   }
 
-  if (window.pywebview && window.pywebview.api) {
-    window.pywebview.api.check_ffmpeg().then(hasFfmpeg => {
-      if (!hasFfmpeg) {
-        installFfmpeg();
-        return;
-      }
-
-      const ext = playlistMediaType === "audio" ? "MP3" : "MP4";
-      const quality = playlistQuality;
-      const isAudio = playlistMediaType === "audio";
-
-      const btn = document.getElementById("btn-download-playlist");
-      btn.setAttribute("disabled", "true");
-      btn.textContent = currentLanguage === "AZ" ? "Yüklənir..." : "Downloading...";
-
-      // Show cancel button and playlist progress panel
-      const cancelBtn = document.getElementById("btn-cancel-playlist");
-      if (cancelBtn) cancelBtn.classList.remove("hidden");
-      const progPanel = document.getElementById("playlist-progress-panel");
-      if (progPanel) progPanel.classList.remove("hidden");
-
-      window.pywebview.api.download_selected_tracks(tracksToDownload, isAudio, isAudio ? "audio" : "video", quality, ext);
-    });
+  const tracksToDownload = Array.from(selectedTrackMap.entries()).map(([key, track]) => ({
+    ...track,
+    client_key: key
+  }));
+  if (tracksToDownload.length === 0) {
+    showInAppToast(
+      currentLanguage === "AZ" ? "Heç bir mahnı seçilməyib." :
+        (currentLanguage === "РУС" ? "Треки не выбраны." : "No tracks selected."),
+      "error"
+    );
+    return;
   }
+
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.download_selected_tracks)) {
+    showInAppToast("Python bridge is not ready. Please restart the app.", "error");
+    return;
+  }
+
+  isPlaylistDownloading = true;
+  const btn = document.getElementById("btn-download-playlist");
+  if (btn) {
+    btn.setAttribute("disabled", "true");
+    btn.textContent = currentLanguage === "AZ" ? "Yüklənir..." : (currentLanguage === "РУС" ? "Загрузка..." : "Downloading...");
+  }
+
+  const cancelBtn = document.getElementById("btn-cancel-playlist");
+  if (cancelBtn) cancelBtn.classList.remove("hidden");
+  const progPanel = document.getElementById("playlist-progress-panel");
+  if (progPanel) progPanel.classList.remove("hidden");
+
+  const ext = playlistMediaType === "audio" ? "MP3" : "MP4";
+  const quality = playlistQuality;
+  const isAudio = playlistMediaType === "audio";
+
+  window.pywebview.api.download_selected_tracks(
+    tracksToDownload, isAudio, isAudio ? "audio" : "video", quality, ext
+  ).catch(err => {
+    console.error("Batch download failed:", err);
+    pendingSearchBatchClear = false;
+    resetPlaylistDownloadState();
+    showInAppToast((translations[currentLanguage].status_error || "Xəta") + ": " + err, "error");
+  });
 }
 
 function cancelPlaylistDownload() {
@@ -1450,10 +1703,18 @@ function cancelPlaylistDownload() {
   }
 }
 
-window.onPlaylistTrackStart = (trackIdx) => {
-  trackStatusMap[trackIdx] = 'downloading';
-  const statusEl = document.getElementById(`track-status-${trackIdx}`);
-  const rowEl = document.getElementById(`track-row-${trackIdx}`);
+window.onPlaylistTrackStart = (clientKey, batchIdx = 0) => {
+  const key = String(clientKey || "");
+  if (key) trackStatusByKey[key] = 'downloading';
+
+  // The batch may contain tracks from several playlist parts. Only update the
+  // row when the matching track is visible in the currently loaded part.
+  const localIdx = fetchedTracks.findIndex(track => getTrackKey(track) === key);
+  if (localIdx < 0) return;
+
+  trackStatusMap[localIdx] = 'downloading';
+  const statusEl = document.getElementById(`track-status-${localIdx}`);
+  const rowEl = document.getElementById(`track-row-${localIdx}`);
   if (statusEl) {
     statusEl.innerHTML = `<span class="w-5 text-center shrink-0 text-[#9D4EDD]"><i class="fa-solid fa-spinner fa-spin text-xs"></i></span>`;
   }
@@ -1468,12 +1729,13 @@ window.updatePlaylistDownloadProgress = (overallPct, currentIdx, totalTracks, tr
   const titleEl = document.getElementById("pl-prog-track-title");
   const countEl = document.getElementById("pl-prog-count-info");
   const speedEl = document.getElementById("pl-prog-speed-info");
+  const t = translations[currentLanguage] || translations["AZ"];
 
   if (pctEl) pctEl.textContent = `${overallPct}%`;
   if (barFill) barFill.style.width = `${overallPct}%`;
   if (titleEl) titleEl.textContent = `(${currentIdx + 1}/${totalTracks}) ${trackTitle}`;
   if (countEl) {
-    const unit = translations[currentLanguage].songs_unit || "mahnı";
+    const unit = t.songs_unit || "mahnı";
     if (totMb > 0) {
       countEl.textContent = `${currentIdx + 1} / ${totalTracks} ${unit} (${dlMb} / ${totMb} MB)`;
     } else {
@@ -1481,51 +1743,98 @@ window.updatePlaylistDownloadProgress = (overallPct, currentIdx, totalTracks, tr
     }
   }
   if (speedEl) {
-    const spdLbl = translations[currentLanguage].ffmpeg_stat_speed || "Sürət";
-    speedEl.textContent = `${spdLbl}: ${speedStr}`;
+    const spdLbl = t.ffmpeg_stat_speed || "Sürət";
+    speedEl.textContent = `${spdLbl}: ${speedStr || "--"}`;
   }
-  
-  // Also update single downloader progress if visible
+
   const detailStr = `(${currentIdx + 1}/${totalTracks}) ${trackTitle}`;
   window.updateDownloadProgress(overallPct, 'downloading', detailStr);
 };
 
-window.onPlaylistTrackFinished = (trackIdx, status, trackTitle) => {
-  if (status === "success") {
-    trackStatusMap[trackIdx] = 'downloaded';
-  } else if (status === "error") {
-    trackStatusMap[trackIdx] = 'error';
-  } else if (status === "cancelled") {
-    trackStatusMap[trackIdx] = 'cancelled';
+window.onPlaylistTrackFinished = (clientKey, status, trackTitle) => {
+  const key = String(clientKey || "");
+  const nextStatus = status === "success" ? "downloaded" :
+    (status === "error" ? "error" : "cancelled");
+  if (key) trackStatusByKey[key] = nextStatus;
+
+  const localIdx = fetchedTracks.findIndex(track => getTrackKey(track) === key);
+  if (localIdx >= 0) {
+    trackStatusMap[localIdx] = nextStatus;
+    renderTrackPage();
   }
-  renderTrackPage();
+};
+
+window.onPlaylistBatchDone = (status, totalTracks, successCount = totalTracks, failedCount = 0) => {
+  const t = translations[currentLanguage] || translations["AZ"];
+  const el = document.getElementById("playlist-status-msg");
+  const success = Number(successCount) || 0;
+  const failed = Number(failedCount) || 0;
+
+  if (status === "cancelled") {
+    if (el) el.textContent = t.status_cancelled;
+    showInAppToast(t.status_cancelled || "Cancelled", "info");
+    return;
+  }
+
+  const summary = failed > 0
+    ? (t.batch_finished || "Finished: {success} successful, {failed} failed")
+        .replace("{success}", success)
+        .replace("{failed}", failed)
+    : (t.all_completed || "All completed! ({count})")
+        .replace("{count}", `${success}/${totalTracks}`);
+
+  if (el) el.textContent = summary;
+  showInAppToast(summary, failed > 0 ? "error" : "success");
+};
+
+window.onPlaylistBatchError = (message) => {
+  const t = translations[currentLanguage] || translations["AZ"];
+  const el = document.getElementById("playlist-status-msg");
+  if (el) el.textContent = `${t.status_error || "Xəta"}: ${message}`;
+  showInAppToast(`${t.status_error || "Xəta"}: ${message}`, "error");
 };
 
 window.updatePlaylistStatus = (text) => {
-  document.getElementById("playlist-status-msg").textContent = text;
+  const el = document.getElementById("playlist-status-msg");
+  if (el) el.textContent = text;
 };
 
-window.resetPlaylistDownloadState = () => {
+window.onDownloadBusy = () => {
+  isDownloading = false;
+  isPlaylistDownloading = false;
+  pendingSearchBatchClear = false;
+  updateDownloadButtonLabel();
+  updateDownloadSelectedButtonText();
+  const cancelBtn = document.getElementById("btn-cancel-playlist");
+  if (cancelBtn) cancelBtn.classList.add("hidden");
+  const singleProg = document.getElementById("progress-box");
+  if (singleProg) singleProg.classList.add("hidden");
+  showInAppToast((translations[currentLanguage].toast_busy || "Başqa yükləmə davam edir."), "info");
+};
+
+function resetPlaylistDownloadState() {
+  const shouldClearSearchSelection = pendingSearchBatchClear;
+  isPlaylistDownloading = false;
+  isDownloading = false;
+  pendingSearchBatchClear = false;
+
   const btn = document.getElementById("btn-download-playlist");
-  if (btn) {
-    btn.removeAttribute("disabled");
-  }
+  if (btn) btn.removeAttribute("disabled");
   const cancelBtn = document.getElementById("btn-cancel-playlist");
   if (cancelBtn) cancelBtn.classList.add("hidden");
   const progPanel = document.getElementById("playlist-progress-panel");
   if (progPanel) {
-    setTimeout(() => {
-      progPanel.classList.add("hidden");
-    }, 2500);
+    setTimeout(() => progPanel.classList.add("hidden"), 2500);
   }
+  if (shouldClearSearchSelection) clearSelectedSongs();
+  updateDownloadButtonLabel();
   updateDownloadSelectedButtonText();
+
   const singleProg = document.getElementById("progress-box");
   if (singleProg) {
-    setTimeout(() => {
-      singleProg.classList.add("hidden");
-    }, 2500);
+    setTimeout(() => singleProg.classList.add("hidden"), 2500);
   }
-};
+}
 
 // Spotify credentials setup
 function openSpotifyDeveloperSite() {
@@ -1538,18 +1847,15 @@ function openSpotifyDeveloperSite() {
 }
 
 function pasteSpotifyKey() {
-  if (window.pywebview && window.pywebview.api) {
-    window.pywebview.api.paste_from_clipboard().then(text => {
-      if (text) {
-        document.getElementById("spotify-api-key").value = text.trim();
-      }
-    });
+  const apply = (text) => {
+    if (!text) return;
+    const input = document.getElementById("spotify-api-key");
+    if (input) input.value = text.trim();
+  };
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.get_clipboard_text) {
+    window.pywebview.api.get_clipboard_text().then(apply).catch(() => {});
   } else if (navigator.clipboard) {
-    navigator.clipboard.readText().then(text => {
-      if (text) {
-        document.getElementById("spotify-api-key").value = text.trim();
-      }
-    });
+    navigator.clipboard.readText().then(apply).catch(() => {});
   }
 }
 
@@ -1577,22 +1883,57 @@ function showInAppToast(message, type = "success") {
   const toast = document.getElementById("app-toast");
   const textEl = document.getElementById("app-toast-text");
   const iconEl = document.getElementById("app-toast-icon");
-  if (!toast || !textEl) return;
+  if (!toast || !textEl || !iconEl) return;
 
+  if (toastTimer) clearTimeout(toastTimer);
   textEl.textContent = message;
+
   if (type === "success") {
     iconEl.className = "w-8 h-8 rounded-lg bg-[#10B981]/20 flex items-center justify-center text-[#10B981] text-sm shrink-0";
     iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
     toast.className = "fixed top-6 right-6 z-50 bg-[#181818]/95 backdrop-blur-md border border-[#10B981]/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-0 opacity-100";
+  } else if (type === "info") {
+    iconEl.className = "w-8 h-8 rounded-lg bg-[#9D4EDD]/20 flex items-center justify-center text-[#C77DFF] text-sm shrink-0";
+    iconEl.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+    toast.className = "fixed top-6 right-6 z-50 bg-[#181818]/95 backdrop-blur-md border border-[#9D4EDD]/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-0 opacity-100";
   } else {
     iconEl.className = "w-8 h-8 rounded-lg bg-[#EF4444]/20 flex items-center justify-center text-[#EF4444] text-sm shrink-0";
     iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
     toast.className = "fixed top-6 right-6 z-50 bg-[#181818]/95 backdrop-blur-md border border-[#EF4444]/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-0 opacity-100";
   }
 
-  setTimeout(() => {
+  toastTimer = setTimeout(() => {
     toast.className = "fixed top-6 right-6 z-50 bg-[#181818]/95 backdrop-blur-md border border-[#2e2e2e] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform -translate-y-8 opacity-0 pointer-events-none";
+    toastTimer = null;
   }, 3500);
+}
+
+function testSpotifyConfig() {
+  const keyInput = document.getElementById("spotify-api-key");
+  const secretInput = document.getElementById("spotify-client-secret");
+  const apiKey = keyInput ? keyInput.value.trim() : "";
+  const clientSecret = secretInput ? secretInput.value.trim() : "";
+  const t = translations[currentLanguage] || translations["AZ"];
+
+  if (!apiKey) {
+    showInAppToast(t.error_title + ": " + (t.spotify_key_label || "Spotify Client ID"), "error");
+    return;
+  }
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.check_spotify_auth)) return;
+
+  const authPromise = clientSecret
+    ? window.pywebview.api.check_spotify_auth(apiKey, clientSecret, "")
+    : window.pywebview.api.check_spotify_auth("", "", apiKey);
+
+  authPromise.then(res => {
+    if (res && res.authenticated) {
+      showInAppToast(t.spotify_test_success || "Spotify OK", "success");
+    } else {
+      showInAppToast(t.spotify_test_fail || "Spotify failed", "error");
+    }
+  }).catch(err => {
+    showInAppToast((t.spotify_test_fail || "Spotify failed") + ": " + err, "error");
+  });
 }
 
 function saveSpotifyConfig() {
@@ -1600,9 +1941,18 @@ function saveSpotifyConfig() {
   const secretInput = document.getElementById("spotify-client-secret");
   const apiKey = keyInput ? keyInput.value.trim() : "";
   const clientSecret = secretInput ? secretInput.value.trim() : "";
+  const t = translations[currentLanguage] || translations["AZ"];
 
   if (!apiKey) {
-    showInAppToast(currentLanguage === "AZ" ? "Zəhmət olmasa API açarını və ya Client ID daxil edin." : "Please enter the API key or Client ID.", "error");
+    showInAppToast(
+      currentLanguage === "AZ" ? "Zəhmət olmasa API açarını və ya Client ID daxil edin." :
+        (currentLanguage === "РУС" ? "Введите API ключ или Client ID." : "Please enter the API key or Client ID."),
+      "error"
+    );
+    return;
+  }
+  if (!clientSecret && /^[0-9a-fA-F]{32}$/.test(apiKey)) {
+    showInAppToast(t.error_client_secret || "Client Secret is required.", "error");
     return;
   }
 
@@ -1610,11 +1960,31 @@ function saveSpotifyConfig() {
     window.pywebview.api.save_spotify_config(apiKey, clientSecret).then(res => {
       if (res.success) {
         closeSpotifyModal();
-        showInAppToast(currentLanguage === "AZ" ? "Spotify açarları saxlanıldı! Pleylist yüklənir..." : "Spotify credentials saved! Fetching playlist...", "success");
-        fetchPlaylist(0, 100);
+        const plInput = document.getElementById("playlist-url-input");
+        const hasPlaylist = activeTab === "playlist" && (
+          (plInput && plInput.value.trim()) || lastPlaylistUrl
+        );
+        if (hasPlaylist) {
+          showInAppToast(
+            currentLanguage === "AZ" ? "Spotify açarları saxlanıldı! Pleylist yüklənir..." :
+              (currentLanguage === "РУС" ? "Ключи Spotify сохранены! Загрузка плейлиста..." : "Spotify credentials saved! Fetching playlist..."),
+            "success"
+          );
+          fetchPlaylist(0, 100);
+        } else {
+          showInAppToast(
+            currentLanguage === "AZ" ? "Spotify açarları saxlanıldı!" :
+              (currentLanguage === "РУС" ? "Ключи Spotify сохранены!" : "Spotify credentials saved!"),
+            "success"
+          );
+        }
+      } else if (res.error === "client_secret_required") {
+        showInAppToast(t.error_client_secret || "Client Secret is required.", "error");
       } else {
-        showInAppToast("Error: " + res.error, "error");
+        showInAppToast((t.status_error || "Xəta") + ": " + res.error, "error");
       }
+    }).catch(err => {
+      showInAppToast((t.status_error || "Xəta") + ": " + err, "error");
     });
   }
 }
@@ -1645,11 +2015,6 @@ function activatePremium(event) {
   if (purchaseBtn) {
     purchaseBtn.textContent = t.status_premium_btn_done;
   }
-  const sidebarBtn = document.getElementById("btn-gopro-sidebar");
-  if (sidebarBtn) {
-    sidebarBtn.textContent = t.status_premium_active;
-  }
-
   // Confetti from left-bottom and right-bottom corners
   const colors = ["#9D4EDD", "#FFD166", "#FF007F", "#06B6D4", "#C77DFF", "#50FA7B"];
   const screenHeight = window.innerHeight;
@@ -1791,36 +2156,38 @@ window.onUpdaterError = (errMsg) => {
 };
 
 // ── Spotify-Style Search & Single URL Downloader Engine ──
-let searchPlatform = "youtube"; // 'youtube' or 'spotify'
+// The single-link downloader accepts both YouTube and Spotify URLs. Live text
+// suggestions use YouTube because it always returns playable results; the
+// user is never asked to switch platforms before downloading.
+const searchPlatform = "youtube";
 let searchDebounceTimer = null;
 let activeSearchQuery = "";
 let searchCache = {};
 let currentSearchResults = [];
-let persistentSelectedSongs = []; // Persistent across searches
-let isSearching = false;
+let searchRequestToken = 0;
 
-function setSearchPlatform(platform) {
-  searchPlatform = (platform === "spotify") ? "spotify" : "youtube";
-  const urlInput = document.getElementById("url-input");
-  if (urlInput) {
-    urlInput.placeholder = currentLanguage === "AZ"
-      ? "YouTube və ya Spotify linki yapışdırın..."
-      : (currentLanguage === "РУС" ? "Вставьте ссылку на YouTube или Spotify..." : "Paste YouTube or Spotify link here...");
-  }
-
-  // If user already typed something, re-trigger search for newly active platform
-  if (urlInput && urlInput.value.trim().length >= 2 && !urlInput.value.trim().startsWith("http")) {
-    handleUrlInputChange(urlInput.value.trim());
-  }
+function isHttpUrl(value) {
+  return /^https?:\/\//i.test(String(value || "").trim());
 }
 
 function handleUrlInputChange(val) {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
   const q = (val || "").trim();
-  if (!q || q.length < 2 || q.startsWith("http://") || q.startsWith("https://")) {
+
+  if (!q || q.length < 2) {
     closeSearchDropdown();
     return;
   }
+
+  // A pasted/typed URL is for the single downloader, not the live search.
+  if (isHttpUrl(q)) {
+    closeSearchDropdown();
+    if (!isDownloading && !isPlaylistDownloading && searchSelectedMap.size > 0) {
+      clearSelectedSongs();
+    }
+    return;
+  }
+
   searchDebounceTimer = setTimeout(() => {
     triggerLiveSearch(q);
   }, 250);
@@ -1828,12 +2195,16 @@ function handleUrlInputChange(val) {
 
 function handleUrlInputFocus(val) {
   const q = (val || "").trim();
-  if (q.length >= 2 && !q.startsWith("http://") && !q.startsWith("https://")) {
+  if (q.length >= 2 && !isHttpUrl(q)) {
     triggerLiveSearch(q);
   }
 }
 
 function closeSearchDropdown() {
+  // Invalidate any in-flight search so a late response cannot reopen the
+  // panel after the user closed it or pasted a URL.
+  searchRequestToken += 1;
+  activeSearchQuery = "";
   const dd = document.getElementById("search-dropdown");
   if (dd) dd.classList.add("hidden");
   showSearchSpinner(false);
@@ -1849,49 +2220,82 @@ function showSearchSpinner(show) {
 
 function triggerLiveSearch(query) {
   const q = (query || "").trim();
-  if (!q || q.length < 2) {
+  if (!q || q.length < 2 || isHttpUrl(q)) {
     closeSearchDropdown();
     return;
   }
 
   activeSearchQuery = q;
-  const cacheKey = `${searchPlatform}:${q.toLowerCase()}`;
+  const cacheKey = `search:${q.toLowerCase()}`;
 
   if (searchCache[cacheKey]) {
     renderSearchDropdownResults(searchCache[cacheKey], q);
     return;
   }
 
+  const requestToken = ++searchRequestToken;
   showSearchSpinner(true);
-  isSearching = true;
 
   if (window.pywebview && window.pywebview.api && window.pywebview.api.search_tracks) {
     window.pywebview.api.search_tracks(q, searchPlatform, 20).then(results => {
-      showSearchSpinner(false);
-      isSearching = false;
-      if (activeSearchQuery === q) {
-        searchCache[cacheKey] = results || [];
-        renderSearchDropdownResults(results || [], q);
+      if (requestToken !== searchRequestToken || activeSearchQuery !== q) {
+        return;
       }
-    }).catch(err => {
       showSearchSpinner(false);
-      isSearching = false;
+      searchCache[cacheKey] = Array.isArray(results) ? results : [];
+      renderSearchDropdownResults(searchCache[cacheKey], q);
+    }).catch(err => {
+      if (requestToken !== searchRequestToken) return;
+      showSearchSpinner(false);
       console.error("Live search error:", err);
+      showInAppToast((translations[currentLanguage].status_error || "Xəta") + ": " + err, "error");
     });
   } else {
     showSearchSpinner(false);
-    isSearching = false;
   }
 }
 
 function getSongUniqueKey(song) {
   if (!song) return "";
-  return song.id ? `${song.source || searchPlatform}:${song.id}` : `${song.artist} - ${song.title}`;
+  const source = song.source || (isHttpUrl(song.url) ? "youtube" : searchPlatform);
+  if (song.id) return `${source}:${song.id}`;
+  return `${source}:${String(song.artist || "").trim().toLowerCase()}|${String(song.title || "").trim().toLowerCase()}`;
 }
 
 function isSongSelected(song) {
-  const key = getSongUniqueKey(song);
-  return persistentSelectedSongs.some(s => getSongUniqueKey(s) === key);
+  return searchSelectedMap.has(getSongUniqueKey(song));
+}
+
+function getSearchRowClasses(isSelected) {
+  return `flex items-center justify-between rounded-xl border p-2 text-xs font-semibold transition-all duration-150 cursor-pointer ${
+    isSelected
+      ? "bg-[#2b1736] border-[#9D4EDD] shadow-sm shadow-[#9D4EDD]/20"
+      : "bg-[#1c1c1c] hover:bg-[#252525] border-[#262626] hover:border-[#383838]"
+  }`;
+}
+
+function getSearchButtonClasses(isSelected) {
+  return `w-7 h-7 rounded-full transition-all flex items-center justify-center text-xs font-bold cursor-pointer ${
+    isSelected
+      ? "bg-[#1B7F43] text-white border border-[#1B7F43] shadow-md shadow-[#1B7F43]/30"
+      : "bg-transparent text-[#A0A0A0] hover:text-white border border-[#444444] hover:border-white"
+  }`;
+}
+
+function refreshSearchRow(index) {
+  const track = currentSearchResults[index];
+  if (!track) return;
+  const isSelected = isSongSelected(track);
+  const btn = document.getElementById(`btn-toggle-dd-${index}`);
+  const row = document.getElementById(`dropdown-row-${index}`);
+  if (btn) {
+    btn.className = getSearchButtonClasses(isSelected);
+    btn.innerHTML = `<i class="fa-solid ${isSelected ? 'fa-check text-xs' : 'fa-plus text-[10px]'}"></i>`;
+    btn.title = isSelected
+      ? (translations[currentLanguage].search_selected_tooltip || "Seçildi")
+      : (translations[currentLanguage].search_add_tooltip || "Əlavə et");
+  }
+  if (row) row.className = getSearchRowClasses(isSelected);
 }
 
 function renderSearchDropdownResults(results, query) {
@@ -1901,75 +2305,79 @@ function renderSearchDropdownResults(results, query) {
   const countBadge = document.getElementById("search-dropdown-count");
   if (!dropdown || !list) return;
 
-  currentSearchResults = results || [];
+  const t = translations[currentLanguage] || translations["AZ"];
+  const items = Array.isArray(results) ? results : [];
+  currentSearchResults = items;
   list.innerHTML = "";
 
   if (title) {
-    title.textContent = searchPlatform === "youtube" ? "YouTube Nəticələri" : "Spotify Nəticələri";
+    title.textContent = t.search_results_title || "Axtarış Nəticələri";
   }
   if (countBadge) {
-    countBadge.textContent = `${results ? results.length : 0} mahnı`;
+    countBadge.textContent = `${items.length} ${t.songs_unit || "mahnı"}`;
   }
 
-  if (!results || results.length === 0) {
-    list.innerHTML = `
-      <div class="px-4 py-8 text-center text-xs text-[#737373]">
-        <i class="fa-regular fa-face-frown text-2xl mb-2 text-[#525252] block"></i>
-        <span>"${escapeHtml(query)}" ${currentLanguage === "AZ" ? "üçün heç bir mahnı tapılmadı" : "heç bir mahnı tapılmadı"}</span>
-      </div>
-    `;
+  if (items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "px-4 py-8 text-center text-xs text-[#737373]";
+    const icon = document.createElement("i");
+    icon.className = "fa-regular fa-face-frown text-2xl mb-2 text-[#525252] block";
+    const text = document.createElement("span");
+    const template = t.search_no_results || '"{query}" üçün nəticə tapılmadı';
+    text.textContent = template.replace("{query}", query || "");
+    empty.appendChild(icon);
+    empty.appendChild(text);
+    list.appendChild(empty);
     dropdown.classList.remove("hidden");
+    updateSelectedIndicator();
     return;
   }
 
-  results.forEach((item, index) => {
+  items.forEach((item, index) => {
     const isSelected = isSongSelected(item);
+    const source = item.source || searchPlatform;
     const row = document.createElement("div");
     row.id = `dropdown-row-${index}`;
-    row.className = `flex items-center justify-between rounded-xl border p-2 text-xs font-semibold transition-all duration-150 cursor-pointer ${
-      isSelected
-        ? "bg-[#2b1736] border-[#9D4EDD] shadow-sm shadow-[#9D4EDD]/20"
-        : "bg-[#1c1c1c] hover:bg-[#252525] border-[#262626] hover:border-[#383838]"
-    }`;
-
-    // Clicking track row toggles selection instead of populating input
-    row.onclick = (e) => {
-      if (e.target.closest(`#btn-toggle-dd-${index}`)) return;
-      toggleDropdownTrack(index, e);
+    row.className = getSearchRowClasses(isSelected);
+    row.onclick = (event) => {
+      if (event.target.closest(`#btn-toggle-dd-${index}`)) return;
+      toggleDropdownTrack(index, event);
     };
 
-    const defaultThumb = (searchPlatform === "youtube" || item.source === "youtube")
+    const defaultThumb = source === "youtube"
       ? "<div class='w-10 h-10 rounded-lg bg-[#141414] flex items-center justify-center text-[#FF0000] shrink-0 border border-white/5'><i class='fa-brands fa-youtube text-base'></i></div>"
       : "<div class='w-10 h-10 rounded-lg bg-[#141414] flex items-center justify-center text-[#1DB954] shrink-0 border border-white/5'><i class='fa-brands fa-spotify text-base'></i></div>";
 
-    const thumbHtml = item.thumbnail
-      ? `<img src="${item.thumbnail}" class="w-10 h-10 rounded-lg object-cover bg-[#121212] shrink-0 border border-white/5 shadow-sm" onerror="this.onerror=null;this.parentElement.innerHTML='${defaultThumb.replace(/'/g, "\\'")}'" />`
+    const thumb = safeImageUrl(item.thumbnail);
+    const thumbHtml = thumb
+      ? `<img src="${escapeHtml(thumb)}" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover bg-[#121212] shrink-0 border border-white/5 shadow-sm" onerror="this.style.display='none'">`
       : defaultThumb;
 
-    const subtitle = `Şarkı • ${escapeHtml(item.artist || "Artist")}${item.duration_str ? ` • ${item.duration_str}` : ""}`;
+    const artist = item.artist || (currentLanguage === "AZ" ? "Naməlum ifaçı" :
+      (currentLanguage === "РУС" ? "Неизвестный исполнитель" : "Unknown artist"));
+    const duration = item.duration_str || formatDuration(item.duration);
+    const subtitleParts = [t.song_word || "Mahnı", artist];
+    if (duration && duration !== "--:--") subtitleParts.push(duration);
+    const subtitle = subtitleParts.map(part => escapeHtml(part)).join(" • ");
+    const displayTitle = item.title || (currentLanguage === "AZ" ? "Adsız" :
+      (currentLanguage === "РУС" ? "Без названия" : "Untitled"));
 
     row.innerHTML = `
       <div class="flex items-center gap-2.5 flex-1 min-w-0 mr-2">
         ${thumbHtml}
         <div class="truncate flex-1 min-w-0">
           <div class="text-white font-bold truncate ${isSelected ? 'text-[#C77DFF]' : 'hover:text-[#9D4EDD]'} transition-colors">
-            ${escapeHtml(item.title || "Unknown Title")}
+            ${escapeHtml(displayTitle)}
           </div>
           <div class="text-[#A0A0A0] text-[11px] truncate mt-0.5">
             ${subtitle}
           </div>
         </div>
       </div>
-
-      <!-- Spotify-Style (+) / (✓) Action Button -->
       <div class="flex items-center gap-2 shrink-0">
         <button type="button" onclick="toggleDropdownTrack(${index}, event)" id="btn-toggle-dd-${index}"
-          class="w-7 h-7 rounded-full transition-all flex items-center justify-center text-xs font-bold cursor-pointer ${
-            isSelected
-              ? "bg-[#1DB954] text-black border border-[#1DB954] shadow-md shadow-[#1DB954]/30"
-              : "bg-transparent text-[#A0A0A0] hover:text-white border border-[#444444] hover:border-white"
-          }"
-          title="${isSelected ? "Seçildi" : "Əlavə et"}">
+          class="${getSearchButtonClasses(isSelected)}"
+          title="${isSelected ? escapeHtml(t.search_selected_tooltip || "Seçildi") : escapeHtml(t.search_add_tooltip || "Əlavə et")}">
           <i class="fa-solid ${isSelected ? 'fa-check text-xs' : 'fa-plus text-[10px]'}"></i>
         </button>
       </div>
@@ -1982,61 +2390,32 @@ function renderSearchDropdownResults(results, query) {
   dropdown.classList.remove("hidden");
 }
 
-function selectTrackToInput(track) {
-  const urlInput = document.getElementById("url-input");
-  if (!urlInput || !track) return;
-
-  const targetUrl = track.url || (track.id ? (track.source === "youtube" ? `https://www.youtube.com/watch?v=${track.id}` : `https://open.spotify.com/track/${track.id}`) : `ytsearch1:${track.artist} - ${track.title}`);
-  urlInput.value = targetUrl;
-
-  closeSearchDropdown();
-  urlInput.focus();
-  showInAppToast(`${track.title} seçildi ✓`, "success");
-}
-
 function toggleDropdownTrack(index, event) {
   if (event) event.stopPropagation();
   const track = currentSearchResults[index];
   if (!track) return;
 
   const key = getSongUniqueKey(track);
-  const existingIdx = persistentSelectedSongs.findIndex(s => getSongUniqueKey(s) === key);
-
-  if (existingIdx >= 0) {
-    persistentSelectedSongs.splice(existingIdx, 1);
+  if (searchSelectedMap.has(key)) {
+    searchSelectedMap.delete(key);
   } else {
-    persistentSelectedSongs.push(track);
+    searchSelectedMap.set(key, track);
   }
 
-  const btn = document.getElementById(`btn-toggle-dd-${index}`);
-  const row = document.getElementById(`dropdown-row-${index}`);
-  const isSelected = isSongSelected(track);
-
-  if (btn) {
-    btn.className = `w-7 h-7 rounded-full transition-all flex items-center justify-center text-xs font-bold cursor-pointer ${
-      isSelected
-        ? "bg-[#1DB954] text-black border border-[#1DB954] shadow-md shadow-[#1DB954]/30"
-        : "bg-transparent text-[#A0A0A0] hover:text-white border border-[#444444] hover:border-white"
-    }`;
-    btn.innerHTML = `<i class="fa-solid ${isSelected ? 'fa-check text-xs' : 'fa-plus text-[10px]'}"></i>`;
-  }
-  if (row) {
-    row.className = `flex items-center justify-between rounded-xl border p-2 text-xs font-semibold transition-all duration-150 cursor-pointer ${
-      isSelected
-        ? "bg-[#2b1736] border-[#9D4EDD] shadow-sm shadow-[#9D4EDD]/20"
-        : "bg-[#1c1c1c] hover:bg-[#252525] border-[#262626] hover:border-[#383838]"
-    }`;
-  }
-
+  refreshSearchRow(index);
   updateSelectedIndicator();
-  updateSingleDownloadButton();
 }
 
 function updateSelectedIndicator() {
   const indicator = document.getElementById("search-selected-indicator");
   const numSpan = document.getElementById("search-selected-num");
-  const urlInput = document.getElementById("url-input");
-  const count = persistentSelectedSongs.length;
+  const wordSpan = document.getElementById("search-selected-word");
+  const bar = document.getElementById("selected-songs-bar");
+  const label = document.getElementById("selected-songs-label");
+  const count = searchSelectedMap.size;
+  const t = translations[currentLanguage] || translations["AZ"];
+
+  if (wordSpan) wordSpan.textContent = t.selected_word || "seçildi";
 
   if (indicator && numSpan) {
     if (count > 0) {
@@ -2046,103 +2425,112 @@ function updateSelectedIndicator() {
       indicator.classList.add("hidden");
     }
   }
-  
-  if (urlInput) {
+
+  if (bar && label) {
     if (count > 0) {
-      urlInput.value = currentLanguage === "AZ" ? `Seçilmiş Mahnılar (${count})` : `Selected Tracks (${count})`;
-      // The platform icon is already managed by setSearchPlatform(), no need to force YouTube here.
-    } else if (urlInput.value.startsWith("Seçilmiş Mahnılar") || urlInput.value.startsWith("Selected Tracks")) {
-      urlInput.value = "";
+      const template = t.selected_count || "{count} mahnı seçildi";
+      label.textContent = template.replace("{count}", count);
+      bar.classList.remove("hidden");
+      bar.classList.add("flex");
+    } else {
+      bar.classList.add("hidden");
+      bar.classList.remove("flex");
     }
   }
+
+  updateSingleDownloadButton();
+}
+
+function clearSelectedSongs() {
+  searchSelectedMap.clear();
+  updateSelectedIndicator();
+  currentSearchResults.forEach((_, index) => refreshSearchRow(index));
 }
 
 function updateSingleDownloadButton() {
   const btn = document.getElementById("btn-download");
   const lbl = document.getElementById("lbl-download-btn");
   if (!btn || !lbl) return;
+  if (isDownloading) return;
 
-  const count = persistentSelectedSongs.length;
+  const count = searchSelectedMap.size;
+  const t = translations[currentLanguage] || translations["AZ"];
+  const baseWord = t.lbl_download_btn || "Yüklə";
   if (count > 0) {
-    const t = translations[currentLanguage] || translations["AZ"];
-    const baseWord = t.lbl_download_btn || "Yüklə";
     const songUnit = t.songs_unit || (currentLanguage === "РУС" ? "треков" : (currentLanguage === "EN" ? "tracks" : "mahnı"));
     lbl.textContent = `${baseWord} (${count} ${songUnit})`;
   } else {
-    const t = translations[currentLanguage] || translations["AZ"];
-    lbl.textContent = t.lbl_download_btn || "Yüklə";
+    lbl.textContent = baseWord;
   }
 }
 
 function downloadSelectedSearchResults() {
-  if (!persistentSelectedSongs || persistentSelectedSongs.length === 0) {
-    const msg = currentLanguage === "AZ" ? "Əvvəlcə ən azı 1 mahnı seçin!" : 
-               (currentLanguage === "РУС" ? "Сначала выберите хотя бы 1 трек!" : "Select at least 1 track first!");
+  if (isDownloading || isPlaylistDownloading) {
+    showInAppToast((translations[currentLanguage].toast_busy || "Başqa yükləmə davam edir."), "info");
+    return;
+  }
+
+  const songs = Array.from(searchSelectedMap.values());
+  if (songs.length === 0) {
+    const msg = currentLanguage === "AZ" ? "Əvvəlcə ən azı 1 mahnı seçin!" :
+      (currentLanguage === "РУС" ? "Сначала выберите хотя бы 1 трек!" : "Select at least 1 track first!");
     showInAppToast(msg, "error");
     return;
   }
 
-  const tracksToDownload = persistentSelectedSongs.map(s => ({
-    id: s.id,
-    title: `${s.artist ? s.artist + " - " : ""}${s.title}`,
-    url: s.url || (s.id ? (s.source === "youtube" ? `https://www.youtube.com/watch?v=${s.id}` : `https://open.spotify.com/track/${s.id}`) : `ytsearch1:${s.artist} - ${s.title}`),
-    thumbnail: s.thumbnail,
-    duration: s.duration,
-    duration_str: s.duration_str,
-    status: 'pending'
-  }));
+  if (!(window.pywebview && window.pywebview.api && window.pywebview.api.download_selected_tracks)) {
+    showInAppToast("Python bridge is not ready. Please restart the app.", "error");
+    return;
+  }
 
-  const ext = selectedExt;
+  const tracksToDownload = songs.map(song => {
+    const source = song.source || searchPlatform;
+    const fallbackUrl = song.id
+      ? (source === "youtube" ? `https://www.youtube.com/watch?v=${song.id}` : `ytsearch1:${song.artist || ""} - ${song.title || ""}`)
+      : `ytsearch1:${song.artist || ""} - ${song.title || ""}`;
+    return {
+      id: song.id,
+      client_key: getSongUniqueKey(song),
+      title: `${song.artist ? song.artist + " - " : ""}${song.title || "Track"}`,
+      url: song.url && !/^https?:\/\/open\.spotify\.com/i.test(song.url) ? song.url : fallbackUrl,
+      thumbnail: song.thumbnail || "",
+      duration: song.duration || 0,
+      duration_str: song.duration_str || "",
+      status: "pending"
+    };
+  }).filter(track => track.url);
+
+  if (tracksToDownload.length === 0) {
+    showInAppToast((translations[currentLanguage].status_error || "Xəta") + ": URL", "error");
+    return;
+  }
+
+  const ext = selectedExt || (mediaType === "audio" ? "MP3" : "MP4");
   const isAudio = mediaType === "audio";
   const quality = selectedQuality;
 
-  const executeDownload = () => {
-    const btn = document.getElementById("btn-download-searched-batch");
-    const btnText = document.getElementById("lbl-download-searched-btn");
+  isDownloading = true;
+  pendingSearchBatchClear = true;
+  updateDownloadButtonLabel();
+  closeSearchDropdown();
 
-    if (btn) btn.setAttribute("disabled", "true");
-    if (btnText) {
-      const txt = currentLanguage === "AZ" ? "Yüklənir..." : (currentLanguage === "РУС" ? "Загрузка..." : "Downloading...");
-      btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>${txt}</span>`;
-    }
+  const progBox = document.getElementById("progress-box");
+  if (progBox) progBox.classList.remove("hidden");
+  const prepMsg = currentLanguage === "AZ" ? "Hazırlanır..." :
+    (currentLanguage === "РУС" ? "Подготовка..." : "Preparing...");
+  window.updateDownloadProgress(0, "extracting", prepMsg);
 
-    const tMsg = currentLanguage === "AZ" ? "mahnının yüklənməsi başladıldı..." : (currentLanguage === "РУС" ? "треков загружаются..." : "tracks downloading...");
-    showInAppToast(`${tracksToDownload.length} ${tMsg}`, "info");
+  const startedMsg = currentLanguage === "AZ" ? `${tracksToDownload.length} mahnının yüklənməsi başladıldı...` :
+    (currentLanguage === "РУС" ? `Начата загрузка ${tracksToDownload.length} треков...` : `${tracksToDownload.length} tracks started downloading...`);
+  showInAppToast(startedMsg, "info");
 
-    const progBox = document.getElementById("progress-box");
-    if (progBox) progBox.classList.remove("hidden");
-    
-    const prepMsg = currentLanguage === "AZ" ? "Hazırlanır..." : (currentLanguage === "РУС" ? "Подготовка..." : "Preparing...");
-    window.updateDownloadProgress(0, 'extracting', prepMsg);
-
-    window.pywebview.api.download_selected_tracks(tracksToDownload, isAudio, isAudio ? "audio" : "video", quality, ext).then(() => {
-      if (btn) btn.removeAttribute("disabled");
-      persistentSelectedSongs = [];
-      updateSelectedIndicator();
-      updateSingleDownloadButton();
-      closeSearchDropdown();
-    }).catch(err => {
-      if (btn) btn.removeAttribute("disabled");
-      const errMsg = currentLanguage === "AZ" ? "Xəta baş verdi!" : (currentLanguage === "РУС" ? "Произошла ошибка!" : "Error occurred!");
-      window.updateDownloadProgress(100, 'error', errMsg);
-      console.error("Batch search download error:", err);
-    });
-  };
-
-  if (isAudio && window.pywebview && window.pywebview.api && window.pywebview.api.check_ffmpeg) {
-    window.pywebview.api.check_ffmpeg().then(hasFfmpeg => {
-      if (!hasFfmpeg) {
-        if (window.pywebview.api.download_ffmpeg) {
-          window.pywebview.api.download_ffmpeg();
-        }
-        return;
-      }
-      executeDownload();
-    });
-  } else {
-    executeDownload();
-  }
+  window.pywebview.api.download_selected_tracks(
+    tracksToDownload, isAudio, isAudio ? "audio" : "video", quality, ext
+  ).catch(err => {
+    isDownloading = false;
+    pendingSearchBatchClear = false;
+    updateDownloadButtonLabel();
+    window.updateDownloadProgress(0, "error", (translations[currentLanguage].status_error || "Xəta") + ": " + err);
+    console.error("Batch search download error:", err);
+  });
 }
-
-
-

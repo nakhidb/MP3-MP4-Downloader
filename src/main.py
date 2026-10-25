@@ -1,7 +1,5 @@
 import os
 import sys
-import time
-import threading
 import webview
 def get_app_dir():
     if getattr(sys, 'frozen', False):
@@ -67,13 +65,6 @@ def main():
     bridge = Bridge()
     
     # We can center the window directly by setting hidden=True, calculating screen sizes on start, and then showing it exactly at the center in the start event callback without delay to avoid the double-jump flash.
-    # Resolve path to the app icon file dynamically
-    icon_path = None
-    if hasattr(sys, '_MEIPASS'):
-        icon_path = os.path.join(sys._MEIPASS, 'web', 'assets', 'trackdrop_icon.ico')
-    else:
-        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'web', 'assets', 'trackdrop_icon.ico')
-
     window = webview.create_window(
         title="TrackDrop",
         url=get_html_path(),
